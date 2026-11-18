@@ -1,7 +1,7 @@
 
 "use client";
 
-import {  useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -15,11 +15,9 @@ import {
   SlidersHorizontal,
   RefreshCw,
 } from "lucide-react";
-import { Service } from "@/lib/api/servicesDetailsPageApi";
+
+import type { Service } from "@/lib/api/servicesDetailsPageApi";
 import { getFeaturedApi } from "@/lib/api/futureApi";
-
-
-
 
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
@@ -30,18 +28,18 @@ export default function ServicesPage() {
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   // Fetch All Services
- const fetchServices = async () => {
+  // Retry Function
+const fetchServices = async () => {
   try {
     setLoading(true);
     setError("");
 
     const data = await getFeaturedApi();
 
-    setServices(
-      data.filter((service) => service.isActive)
-    );
-
+    setServices(data.filter((service) => service.isActive));
   } catch (err) {
+    console.error("Services fetch error:", err);
+
     setError(
       err instanceof Error
         ? err.message
@@ -52,7 +50,37 @@ export default function ServicesPage() {
   }
 };
 
- 
+// Initial API Fetch
+useEffect(() => {
+  let cancelled = false;
+
+  getFeaturedApi()
+    .then((data) => {
+      if (!cancelled) {
+        setServices(data.filter((service) => service.isActive));
+      }
+    })
+    .catch((err) => {
+      if (!cancelled) {
+        console.error("Services fetch error:", err);
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Something went wrong."
+        );
+      }
+    })
+    .finally(() => {
+      if (!cancelled) {
+        setLoading(false);
+      }
+    });
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
 
   // Dynamic Categories
   const categories = useMemo(() => {
@@ -106,6 +134,7 @@ export default function ServicesPage() {
           </p>
 
           <div className="mt-9 flex items-center justify-center gap-8 text-sm text-white/80">
+
             <div>
               <p className="text-2xl font-bold text-white">
                 {services.length}+
@@ -130,8 +159,8 @@ export default function ServicesPage() {
               </p>
               <p className="mt-1 text-xs">Care</p>
             </div>
-          </div>
 
+          </div>
         </div>
       </section>
 
@@ -230,6 +259,7 @@ export default function ServicesPage() {
           <div className="flex min-h-75 items-center justify-center">
             <div className="text-center">
               <Loader2 className="mx-auto h-10 w-10 animate-spin text-[#873C52]" />
+
               <p className="mt-4 text-sm text-gray-500">
                 Loading our services...
               </p>
@@ -240,6 +270,7 @@ export default function ServicesPage() {
         {/* ERROR */}
         {!loading && error && (
           <div className="flex min-h-75 flex-col items-center justify-center rounded-3xl border border-[#E8C9CE] bg-white px-5 text-center">
+
             <SearchX className="h-12 w-12 text-[#873C52]" />
 
             <h3 className="mt-5 text-xl font-bold text-[#292323]">
@@ -257,12 +288,14 @@ export default function ServicesPage() {
               <RefreshCw size={16} />
               Try Again
             </button>
+
           </div>
         )}
 
         {/* EMPTY STATE */}
         {!loading && !error && filteredServices.length === 0 && (
           <div className="flex min-h-75 flex-col items-center justify-center rounded-3xl border border-[#E8C9CE]/60 bg-white px-5 text-center">
+
             <div className="rounded-full bg-[#F8E9EC] p-5">
               <Scissors className="h-10 w-10 text-[#873C52]" />
             </div>
@@ -285,6 +318,7 @@ export default function ServicesPage() {
             >
               Show All Services
             </button>
+
           </div>
         )}
 
@@ -363,7 +397,6 @@ export default function ServicesPage() {
       {/* BOTTOM CTA */}
       <section className="bg-[#FFF9F7] px-5 py-16">
         <div className="mx-auto max-w-4xl rounded-3xl bg-[#55102A] px-6 py-14 text-center sm:px-12">
-
 
           <h2 className="mt-5 text-3xl font-bold text-white sm:text-4xl">
             Your Beauty, Your Moment.
