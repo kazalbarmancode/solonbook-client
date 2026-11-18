@@ -1,19 +1,14 @@
+import Image from "next/image"
+import Link from "next/link"
+import { ArrowRight, Heart } from "lucide-react"
+import { getFeaturedSixApi } from "@/lib/api/futureApi"
 
-import Image from "next/image";
-import Link from "next/link";
-import { ArrowRight, Heart } from "lucide-react";
-import { featuredSixApi } from "@/lib/api/futureApi";
-
-
-
-
-const FeaturedServices =async () => {
-      const services = await featuredSixApi();
+const FeaturedServices = async () => {
+  const services = await getFeaturedSixApi()
 
   return (
     <section className="bg-[#FFFDF9] px-5 py-16 md:px-8 lg:py-20">
       <div className="mx-auto max-w-7xl">
-
         <div className="mb-10 text-center">
           <div className="flex items-center justify-center gap-5">
             <span className="hidden h-px w-16 bg-[#873C52] sm:block" />
@@ -48,7 +43,7 @@ const FeaturedServices =async () => {
                 <button
                   type="button"
                   aria-label={`Save ${service.name}`}
-                  className="absolute right-3 top-3 rounded-full bg-white p-2 text-[#873C52] shadow transition hover:bg-[#873C52] hover:text-white"
+                  className="absolute top-3 right-3 rounded-full bg-white p-2 text-[#873C52] shadow transition hover:bg-[#873C52] hover:text-white"
                 >
                   <Heart size={17} />
                 </button>
@@ -98,10 +93,9 @@ const FeaturedServices =async () => {
             <ArrowRight size={18} />
           </Link>
         </div>
-
       </div>
     </section>
-  );
-};
+  )
+}
 
-export default FeaturedServices;
+export default FeaturedServices

@@ -188,13 +188,7 @@ const Footer = () => {
 
             </ul>
 
-            <Link
-              href="/services"
-              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#873C52] px-5 py-3 text-sm font-semibold text-white transition duration-300 hover:bg-[#A34B65]"
-            >
-              Book Appointment
-              <ArrowRight size={17} />
-            </Link>
+            
           </div>
 
         </div>

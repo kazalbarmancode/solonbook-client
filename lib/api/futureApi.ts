@@ -1,5 +1,6 @@
+import { Service } from "./servicesDetailsPageApi";
 
-export interface Service {
+export interface ServiceType {
   _id: string;
   name: string;
   category: string;
@@ -10,27 +11,32 @@ export interface Service {
   isActive: boolean;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL ||  "http://localhost:5000"
+
 // All Featured Services
-export const featuredApi = async () => {
-  const res = await fetch("http://localhost:5000/featured-all");
+export const getFeaturedApi = async (): Promise<ServiceType[]> => {
+  const res = await fetch(`${API_URL}/featured-all`);
 
   if (!res.ok) {
     console.log("API Status:", res.status);
     throw new Error("Failed to fetch featured services");
   }
 
-  const data = await res.json();
+  const data: Service[] = await res.json();
 
   return data;
 };
 
 // First 6 Featured Services
-export const featuredSixApi = async (): Promise<Service[]> => {
-  const res = await fetch("http://localhost:5000/featured");
+export const getFeaturedSixApi = async (): Promise<Service[]> => {
+  const res = await fetch(`${API_URL}/featured`);
 
   if (!res.ok) {
+    console.log("API Status:", res.status);
     throw new Error("Failed to fetch featured services");
   }
 
-  return res.json();
+  const data: Service[] = await res.json();
+
+  return data;
 };
