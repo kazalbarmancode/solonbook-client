@@ -51,7 +51,7 @@ const Navbar = () => {
         {/* RIGHT: AUTH BUTTONS */}
         <div className="hidden items-center justify-end gap-3 md:flex">
           <Link
-            href="/sign-in"
+            href="/sign-In"
             className="rounded-md px-4 py-2 text-sm font-semibold text-[#873C52] hover:bg-[#E8C9CE]/30"
           >
             Sign In
@@ -107,7 +107,7 @@ const Navbar = () => {
                 <div className="mt-4 flex flex-col gap-3">
                   <SheetClose>
                     <Link
-                      href="/sign-in"
+                      href="/sign-In"
                       className="block rounded-md border border-[#873C52] px-4 py-2 text-center text-sm font-medium text-[#873C52]"
                     >
                       Sign In
