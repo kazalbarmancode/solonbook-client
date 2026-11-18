@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navber";
+import Footer from "@/components/Footer";
 
 
 const geist = Geist({
@@ -40,6 +41,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-[#FFFDF9]">
         <Navbar />
         {children}
+        <Footer></Footer>
       </body>
     </html>
   );
