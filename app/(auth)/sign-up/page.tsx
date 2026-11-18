@@ -5,7 +5,7 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { authClient } from "@/lib/auth-client"
+import { authClient, signUp } from "@/lib/auth-client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -102,7 +102,7 @@ export default function SignUpPage() {
     try {
       setLoading(true)
 
-      const { error } = await authClient.signUp.email({
+      const { error } = await signUp.email({
         name: name.trim(),
         email: email.trim(),
         password,
@@ -125,20 +125,22 @@ export default function SignUpPage() {
 
   // Google Signup
   const handleGoogleSignUp = async () => {
-    setErrorMsg("")
+  setErrorMsg("");
 
-    try {
-      setGoogleLoading(true)
+  try {
+    setGoogleLoading(true);
 
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/",
-      })
-    } catch {
-      setErrorMsg("Google sign up failed. Please try again.")
-      setGoogleLoading(false)
-    }
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/",
+    });
+  } catch (error) {
+    console.error("Google Sign Up Error:", error);
+
+    setErrorMsg("Google sign up failed. Please try again.");
+    setGoogleLoading(false);
   }
+};
 
   return (
     <main className="min-h-screen bg-[#FFFDF9] px-4 py-12">

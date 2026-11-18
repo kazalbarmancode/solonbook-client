@@ -6,7 +6,6 @@ import {
   Phone,
   MapPin,
   Clock,
-  ArrowRight,
 } from "lucide-react";
 
 import {

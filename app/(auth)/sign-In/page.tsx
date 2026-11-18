@@ -32,56 +32,82 @@ export default function SignInPage() {
 
   // Email Sign In
   const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault()
-    setErrorMsg("")
+  e: React.FormEvent<HTMLFormElement>
+) => {
+  e.preventDefault();
+  setErrorMsg("");
 
-    if (!email.trim() || !password) {
-      setErrorMsg("Please enter your email and password.")
-      return
-    }
-
-    try {
-      setLoading(true)
-
-      const { error } = await authClient.signIn.email({
-        email: email.trim(),
-        password,
-        rememberMe,
-        callbackURL: "/",
-      })
-
-      if (error) {
-        setErrorMsg(error.message || "Invalid email or password.")
-        return
-      }
-
-      router.push("/")
-      router.refresh()
-    } catch {
-      setErrorMsg("Something went wrong. Please try again.")
-    } finally {
-      setLoading(false)
-    }
+  if (!email.trim() || !password) {
+    setErrorMsg("Please enter your email and password.");
+    return;
   }
 
-  // Google Sign In
-  const handleGoogleSignIn = async () => {
-    setErrorMsg("")
+  try {
+    setLoading(true);
 
-    try {
-      setGoogleLoading(true)
+    const { data, error } = await authClient.signIn.email({
+      email: email.trim(),
+      password,
+      rememberMe,
+    });
 
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/",
-      })
-    } catch {
-      setErrorMsg("Google sign in failed. Please try again.")
-      setGoogleLoading(false)
+    if (error) {
+      setErrorMsg(error.message || "Invalid email or password.");
+      return;
     }
+
+    const user = data?.user as
+      | { role?: string }
+      | undefined;
+
+    let role = user?.role?.toLowerCase();
+
+    if (!role) {
+      const sessionResult = await authClient.getSession();
+
+      const sessionUser = sessionResult.data?.user as
+        | { role?: string }
+        | undefined;
+
+      role = sessionUser?.role?.toLowerCase();
+    }
+
+    if (role === "admin") {
+      router.replace("/dashboard/admin");
+    } else if (role === "customer") {
+      router.replace("/dashboard");
+    } else {
+      setErrorMsg(
+        "Your account role was not found. Please contact support."
+      );
+    }
+
+    router.refresh();
+  } catch (error) {
+    console.error("Sign in error:", error);
+    setErrorMsg("Something went wrong. Please try again.");
+  } finally {
+    setLoading(false);
   }
+};
+
+// Google Sign In
+const handleGoogleSignIn = async () => {
+  setErrorMsg("");
+
+  try {
+    setGoogleLoading(true);
+
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/auth/redirect",
+    });
+  } catch (error) {
+    console.error("Google sign in error:", error);
+    setErrorMsg("Google sign in failed. Please try again.");
+    setGoogleLoading(false);
+  }
+};
 
   return (
     <main className="min-h-screen bg-[#FFFDF9] px-4 py-12">

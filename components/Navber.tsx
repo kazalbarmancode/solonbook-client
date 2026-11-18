@@ -1,10 +1,10 @@
 
-"use client"
+"use client";
 
-import Link from "next/link"
-import Image from "next/image"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import Link from "next/link";
+import Image from "next/image";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   Menu,
@@ -13,7 +13,7 @@ import {
   LayoutDashboard,
   LogOut,
   Loader2,
-} from "lucide-react"
+} from "lucide-react";
 
 import {
   Sheet,
@@ -21,50 +21,70 @@ import {
   SheetHeader,
   SheetTrigger,
   SheetClose,
-} from "@/components/ui/sheet"
+} from "@/components/ui/sheet";
 
-import { authClient } from "@/lib/auth-client"
-
-const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Services", href: "/services" },
-  { label: "About Us", href: "/about" },
-  { label: "Contact", href: "/contact" },
-]
+import { authClient } from "@/lib/auth-client";
 
 const Navbar = () => {
-  const router = useRouter()
+  const router = useRouter();
 
-  const { data: session, isPending } = authClient.useSession()
+  const { data: session, isPending } = authClient.useSession();
 
-  const [profileOpen, setProfileOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
+  // Get logged-in user's role
+  const role = (
+    session?.user as { role?: string } | undefined
+  )?.role?.toLowerCase();
+
+  const isAdmin = role === "admin";
+  const isCustomer = role === "customer";
+
+  // Role based dashboard URL
+  const dashboardUrl = isAdmin
+    ? "/dashboard/admin"
+    : "/dashboard";
+
+  const dashboardLabel = isAdmin
+    ? "Admin Dashboard"
+    : "My Dashboard";
+
+  const navLinks = [
+    { label: "Home", href: "/" },
+    ...(session?.user && !isPending
+      ? [{ label: "Dashboard", href: dashboardUrl }]
+      : []),
+    { label: "Services", href: "/services" },
+    { label: "About Us", href: "/about" },
+    { label: "Contact", href: "/contact" },
+  ];
+
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Sign Out
   const handleSignOut = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
 
-      const { error } = await authClient.signOut()
+      const { error } = await authClient.signOut();
 
       if (error) {
-        console.error("Sign out failed:", error.message)
-        return
+        console.error("Sign out failed:", error.message);
+        return;
       }
 
-      setProfileOpen(false)
-      router.push("/")
-      router.refresh()
+      setProfileOpen(false);
+
+      router.replace("/");
+      router.refresh();
     } catch (error) {
-      console.error("Sign out failed:", error)
+      console.error("Sign out failed:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#E8C9CE]/50 bg-[#FFFDF9]/95 backdrop-blur-md">
-
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
 
         {/* LEFT: LOGO */}
@@ -94,14 +114,12 @@ const Navbar = () => {
 
         {/* RIGHT: AUTH BUTTONS / PROFILE */}
         <div className="hidden items-center justify-end gap-3 md:flex">
-
           {isPending ? (
             <div className="h-10 w-10 animate-pulse rounded-full bg-[#E8C9CE]/50" />
           ) : session?.user ? (
-
-            /* LOGGED IN: PROFILE DROPDOWN */
             <div className="relative">
 
+              {/* PROFILE BUTTON */}
               <button
                 type="button"
                 onClick={() => setProfileOpen(!profileOpen)}
@@ -125,6 +143,7 @@ const Navbar = () => {
                 )}
               </button>
 
+              {/* PROFILE DROPDOWN */}
               {profileOpen && (
                 <>
                   <button
@@ -145,6 +164,10 @@ const Navbar = () => {
                       <p className="truncate text-xs text-gray-500">
                         {session.user.email}
                       </p>
+
+                      <p className="mt-1 text-xs font-semibold capitalize text-[#873C52]">
+                        {role || "User"}
+                      </p>
                     </div>
 
                     {/* MY PROFILE */}
@@ -157,15 +180,17 @@ const Navbar = () => {
                       My Profile
                     </Link>
 
-                    {/* DASHBOARD */}
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setProfileOpen(false)}
-                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-[#FFF5F5] hover:text-[#873C52]"
-                    >
-                      <LayoutDashboard size={17} />
-                      Dashboard
-                    </Link>
+                    {/* ROLE BASED DASHBOARD */}
+                    {(isAdmin || isCustomer) && (
+                      <Link
+                        href={dashboardUrl}
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-[#FFF5F5] hover:text-[#873C52]"
+                      >
+                        <LayoutDashboard size={17} />
+                        {dashboardLabel}
+                      </Link>
+                    )}
 
                     {/* SIGN OUT */}
                     <button
@@ -179,26 +204,23 @@ const Navbar = () => {
                       ) : (
                         <LogOut size={17} />
                       )}
-
                       Sign Out
                     </button>
-
                   </div>
                 </>
               )}
             </div>
-
           ) : (
-
-            /* LOGGED OUT: AUTH BUTTONS */
             <>
+              {/* SIGN IN */}
               <Link
-                href="/sign-in"
+                href="/sign-In"
                 className="rounded-md px-4 py-2 text-sm font-semibold text-[#873C52] hover:bg-[#E8C9CE]/30"
               >
                 Sign In
               </Link>
 
+              {/* SIGN UP */}
               <Link
                 href="/sign-up"
                 className="rounded-full bg-[#873C52] px-6 py-2 text-sm font-semibold text-white hover:bg-[#6F3043]"
@@ -224,7 +246,6 @@ const Navbar = () => {
               side="right"
               className="w-75 border-[#E8C9CE] bg-[#FFFDF9]"
             >
-
               {/* MOBILE LOGO */}
               <SheetHeader>
                 <Image
@@ -253,17 +274,12 @@ const Navbar = () => {
 
                 {/* MOBILE AUTH */}
                 <div className="mt-4 flex flex-col gap-3">
-
                   {isPending ? (
-
                     <div className="h-10 animate-pulse rounded-lg bg-[#E8C9CE]/50" />
-
                   ) : session?.user ? (
-
                     <>
                       {/* MOBILE USER INFO */}
                       <div className="flex items-center gap-3 rounded-xl border border-[#E8C9CE] p-3">
-
                         {session.user.image ? (
                           <Image
                             src={session.user.image}
@@ -287,6 +303,10 @@ const Navbar = () => {
                           <p className="truncate text-xs text-gray-500">
                             {session.user.email}
                           </p>
+
+                          <p className="text-xs font-semibold capitalize text-[#873C52]">
+                            {role || "User"}
+                          </p>
                         </div>
                       </div>
 
@@ -302,15 +322,17 @@ const Navbar = () => {
                       </SheetClose>
 
                       {/* MOBILE DASHBOARD */}
-                      <SheetClose>
-                        <Link
-                          href="/dashboard"
-                          className="flex items-center gap-3 rounded-md px-4 py-2 text-sm text-[#292323] hover:bg-[#FFF5F5]"
-                        >
-                          <LayoutDashboard size={17} />
-                          Dashboard
-                        </Link>
-                      </SheetClose>
+                      {(isAdmin || isCustomer) && (
+                        <SheetClose>
+                          <Link
+                            href={dashboardUrl}
+                            className="flex items-center gap-3 rounded-md px-4 py-2 text-sm text-[#292323] hover:bg-[#FFF5F5]"
+                          >
+                            <LayoutDashboard size={17} />
+                            {dashboardLabel}
+                          </Link>
+                        </SheetClose>
+                      )}
 
                       {/* MOBILE SIGN OUT */}
                       <button
@@ -324,18 +346,15 @@ const Navbar = () => {
                         ) : (
                           <LogOut size={17} />
                         )}
-
                         Sign Out
                       </button>
                     </>
-
                   ) : (
-
                     <>
                       {/* MOBILE SIGN IN */}
                       <SheetClose>
                         <Link
-                          href="/sign-in"
+                          href="/sign-In"
                           className="block rounded-md border border-[#873C52] px-4 py-2 text-center text-sm font-medium text-[#873C52]"
                         >
                           Sign In
@@ -358,10 +377,9 @@ const Navbar = () => {
             </SheetContent>
           </Sheet>
         </div>
-
       </nav>
     </header>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;
