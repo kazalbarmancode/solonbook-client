@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -11,8 +11,6 @@ import {
   Scissors,
   Users,
   CreditCard,
-  Home,
-  LogOut,
   Sparkles,
   ChevronRight,
   Heart,
@@ -21,7 +19,6 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -31,7 +28,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-import { authClient } from "@/lib/auth-client";
 import type { ElementType } from "react";
 
 interface MenuItem {
@@ -101,21 +97,11 @@ export default function DashboardSideBar({
   role,
 }: DashboardSideBarProps) {
   const pathname = usePathname();
-  const router = useRouter();
 
   const isAdmin = role === "admin";
   const menu = isAdmin ? adminMenu : customerMenu;
 
-  const handleLogout = async () => {
-    try {
-      await authClient.signOut();
-
-      router.replace("/sign-In");
-      router.refresh();
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
+  
 
   return (
     <Sidebar collapsible="icon" className="border-r border-[#E8C9CE]/40">
@@ -174,8 +160,8 @@ export default function DashboardSideBar({
 
                 const active =
                   pathname === item.url ||
-                  (item.url !== "/dashBoard" &&
-                    item.url !== "/dashBoard/admin" &&
+                  (item.url !== "/dashboard" &&
+                    item.url !== "/dashboard/admin" &&
                     pathname.startsWith(item.url));
 
                 return (
@@ -237,40 +223,7 @@ export default function DashboardSideBar({
         )}
       </SidebarContent>
 
-      {/* Footer */}
-      <SidebarFooter className="border-t border-white/10 bg-[#55102A] p-3">
-        <SidebarMenu className="gap-2">
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip="Back to Home"
-              className="h-11 rounded-xl px-3 text-white/75 hover:bg-white/10! hover:text-white!"
-            >
-              <Link
-                href="/"
-                className="flex w-full items-center gap-2"
-              >
-                <Home size={19} />
-                <span>Back to Home</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={handleLogout}
-              tooltip="Logout"
-              className="h-11 rounded-xl px-3 text-white/75 hover:bg-red-500/20! hover:text-white!"
-            >
-              <LogOut size={19} />
-              <span>Logout</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-
-        <div className="mt-3 px-3 pb-2 text-center text-[10px] text-white/40 group-data-[collapsible=icon]:hidden">
-          © 2026 SalonBook. All rights reserved.
-        </div>
-      </SidebarFooter>
+      
     </Sidebar>
   );
 }

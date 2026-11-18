@@ -64,7 +64,7 @@ export default function CustomerDashboard() {
           </div>
 
           <h1 className="text-3xl font-bold sm:text-4xl">
-            Hello, {session.user.name || "Customer"}!
+            Hello, {session?.user.name || "Customer"}!
           </h1>
 
           <p className="mt-3 leading-7 text-white/75">

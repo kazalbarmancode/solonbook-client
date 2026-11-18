@@ -6,6 +6,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navber";
 import Footer from "@/components/Footer";
+import { Toaster } from "react-hot-toast";
 
 
 const geist = Geist({
@@ -39,6 +40,18 @@ export default function RootLayout({
       )}
     >
       <body className="min-h-screen bg-[#FFFDF9]">
+         <Toaster
+    position="top-right"
+    reverseOrder={false}
+    toastOptions={{
+      duration: 3000,
+      style: {
+        background: "#55102A",
+        color: "#FFFDF9",
+        borderRadius: "12px",
+      },
+    }}
+  />
         <Navbar />
         {children}
         <Footer></Footer>

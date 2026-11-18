@@ -11,6 +11,7 @@ import {
 
 import { authClient } from "@/lib/auth-client";
 import DashboardSideBar from "../components/DashbordSideBer";
+import Footer from "@/components/Footer";
 
 type UserRole = "customer" | "admin";
 
