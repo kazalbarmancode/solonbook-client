@@ -44,3 +44,20 @@ export const createAppointmentApi = async (
 
   return result.data;
 };
+export const getMyAppointmentsApi = async (
+  userId: string
+): Promise<Appointment[]> => {
+  const response = await fetch(
+    `${API_URL}/appointments/user/${userId}`
+  );
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      result.message || "Failed to fetch appointments"
+    );
+  }
+
+  return result.data;
+};
