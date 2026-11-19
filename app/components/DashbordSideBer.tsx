@@ -54,7 +54,7 @@ const customerMenu: MenuItem[] = [
   },
   {
     title: "Booking History",
-    url: "/dashboard/history",
+    url: "/dashboard/bookingHistory",
     icon: History,
   },
   {

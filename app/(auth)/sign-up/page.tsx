@@ -114,7 +114,7 @@ export default function SignUpPage() {
         return
       }
 
-      router.push("/sign-In")
+      router.push("/")
       router.refresh()
     } catch {
       setErrorMsg("Something went wrong. Please try again.")
