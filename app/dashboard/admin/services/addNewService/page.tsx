@@ -1,24 +1,13 @@
+"use client"
 
-"use client";
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { ArrowLeft, ImagePlus, Loader2, Scissors, Save, X } from "lucide-react"
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import {
-  ArrowLeft,
-  ImagePlus,
-  Loader2,
-  Scissors,
-  Save,
-  X,
-} from "lucide-react";
-
-import {
-  addServiceApi,
-  type ServicePayload,
-} from "@/lib/api/servicesApi";
-import Image from "next/image";
-import toast from "react-hot-toast";
+import { addServiceApi, type ServicePayload } from "@/lib/api/servicesApi"
+import Image from "next/image"
+import toast from "react-hot-toast"
 
 const initialForm: ServicePayload = {
   name: "",
@@ -28,34 +17,34 @@ const initialForm: ServicePayload = {
   description: "",
   image: "",
   isActive: true,
-};
+}
 
 export default function AddNewServicesPage() {
-  const router = useRouter();
+  const router = useRouter()
 
-  const [formData, setFormData] = useState(initialForm);
-  const [price, setPrice] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState(initialForm)
+  const [price, setPrice] = useState("")
+  const [loading, setLoading] = useState(false)
 
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
 
     setFormData((prev) => ({
       ...prev,
       [name]: name === "price" ? Number(value) : value,
-    }));
+    }))
 
     if (name === "price") {
-      setPrice(value);
+      setPrice(value)
     }
-  };
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (
       !formData.name.trim() ||
@@ -66,40 +55,37 @@ export default function AddNewServicesPage() {
       !formData.description.trim() ||
       !formData.image.trim()
     ) {
-      toast.error("Please fill in all required fields");
-      return;
+      toast.error("Please fill in all required fields")
+      return
     }
 
     try {
-      setLoading(true);
+      setLoading(true)
 
       await addServiceApi({
         ...formData,
         price: Number(price),
-      });
+      })
 
-      toast.success("Service added successfully!");
+      toast.success("Service added successfully!")
 
-      setFormData(initialForm);
-      setPrice("");
+      setFormData(initialForm)
+      setPrice("")
 
-      router.push("/dashboard/admin/services");
-      router.refresh();
+      router.push("/dashboard/admin/services")
+      router.refresh()
     } catch (error) {
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to add service"
-      );
+        error instanceof Error ? error.message : "Failed to add service"
+      )
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-full bg-[#FFFDF9] p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-5xl">
-
         {/* Header */}
         <div className="mb-8">
           <Link
@@ -128,7 +114,6 @@ export default function AddNewServicesPage() {
 
         <form onSubmit={handleSubmit}>
           <div className="overflow-hidden rounded-2xl border border-[#E8C9CE]/50 bg-white shadow-sm">
-
             {/* Basic Information */}
             <div className="border-b border-[#E8C9CE]/40 p-5 sm:p-8">
               <h2 className="mb-1 text-lg font-semibold text-[#292323]">
@@ -140,7 +125,6 @@ export default function AddNewServicesPage() {
               </p>
 
               <div className="grid gap-5 sm:grid-cols-2">
-
                 <div className="sm:col-span-2">
                   <label className="mb-2 block text-sm font-semibold text-[#292323]">
                     Service Name *
@@ -151,7 +135,7 @@ export default function AddNewServicesPage() {
                     onChange={handleChange}
                     placeholder="e.g. Hair Styling"
                     required
-                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-[#873C52] focus:ring-2 focus:ring-[#873C52]/10"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition outline-none focus:border-[#873C52] focus:ring-2 focus:ring-[#873C52]/10"
                   />
                 </div>
 
@@ -245,6 +229,8 @@ export default function AddNewServicesPage() {
                   <Image
                     src={formData.image}
                     alt="Service preview"
+                    width={600}
+                    height={400}
                     className="max-h-52 max-w-full rounded-xl object-cover"
                   />
                 ) : (
@@ -338,10 +324,9 @@ export default function AddNewServicesPage() {
                 )}
               </button>
             </div>
-
           </div>
         </form>
       </div>
     </div>
-  );
+  )
 }

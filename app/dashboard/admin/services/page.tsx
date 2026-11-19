@@ -42,7 +42,6 @@ export default function AdminServicesPage() {
 
   const itemsPerPage = 8
 
-
   const fetchServices = async () => {
     try {
       setLoading(true)
@@ -139,8 +138,6 @@ export default function AdminServicesPage() {
     (page - 1) * itemsPerPage,
     page * itemsPerPage
   )
-
- 
 
   const handleStatusChange = async (service: Service) => {
     try {
@@ -480,9 +477,7 @@ export default function AdminServicesPage() {
                             </Link>
 
                             <Link
-                              href={`/dashboard/admin/services/${service._id}/edit`}
-                              title="Edit service"
-                              className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-[#873C52] hover:bg-[#873C52]/5 hover:text-[#873C52]"
+                              href={`/dashboard/admin/services/edit/${service._id}`}
                             >
                               <Pencil size={16} />
                             </Link>

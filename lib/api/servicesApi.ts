@@ -56,15 +56,23 @@ export const addServiceApi = (data: ServicePayload) =>
     body: JSON.stringify(data),
   });
 
-// PUT
-export const updateServiceApi = (
+// Patch
+export const getSingleServiceApi = async (
+  id: string
+): Promise<Service> => {
+  return apiRequest(`/futured-all/${id}`);
+};
+
+// Update Service
+export const updateServiceApi = async (
   id: string,
   data: ServicePayload
-) =>
-  apiRequest(`/admin/services/${id}`, {
-    method: "PUT",
+) => {
+  return apiRequest(`/admin/services/${id}`, {
+    method: "PATCH",
     body: JSON.stringify(data),
   });
+};
 
 // PATCH
 export const updateServiceStatusApi = (
