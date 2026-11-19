@@ -31,6 +31,7 @@ status: "Pending" | "Confirmed" | "Cancelled" | "Completed";
   customerEmail?: string;
 }
 
+
 export const createAppointmentApi = async (
   data: AppointmentPayload
 ): Promise<Appointment> => {
@@ -50,6 +51,7 @@ export const createAppointmentApi = async (
 
   return result.data;
 };
+
 export const getMyAppointmentsApi = async (
   userId: string
 ): Promise<Appointment[]> => {

@@ -1,19 +1,18 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
-import Link from "next/link";
-import toast from "react-hot-toast";
+import { useEffect, useState } from "react"
+import { useParams, useRouter } from "next/navigation"
+import Image from "next/image"
+import Link from "next/link"
+import toast from "react-hot-toast"
 
-import { authClient } from "@/lib/auth-client";
-import {
-  getServiceDetails,
-  Service,
-} from "@/lib/api/servicesDetailsPageApi";
-import { createAppointmentApi } from "@/lib/api/appointmentsApi";
+import { authClient } from "@/lib/auth-client"
 
-import { Button } from "@/components/ui/button";
+import { getServiceDetails, Service } from "@/lib/api/servicesDetailsPageApi"
+
+import { createAppointmentApi } from "@/lib/api/appointmentsApi"
+
+import { Button } from "@/components/ui/button"
 
 import {
   ArrowLeft,
@@ -23,7 +22,7 @@ import {
   Loader2,
   CheckCircle2,
   Info,
-} from "lucide-react";
+} from "lucide-react"
 
 const timeSlots = [
   "10:00 AM",
@@ -35,137 +34,143 @@ const timeSlots = [
   "04:00 PM",
   "05:00 PM",
   "06:00 PM",
-];
+]
 
 export default function BookingPage() {
-  const params = useParams();
-  const router = useRouter();
+  const params = useParams()
+  const router = useRouter()
 
-  const id = params.id as string;
+  const id = params.id as string
 
   // Authentication
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session, isPending } = authClient.useSession()
 
   const role = (
     session?.user as { role?: string } | undefined
-  )?.role?.toLowerCase();
+  )?.role?.toLowerCase()
 
   // States
-  const [service, setService] = useState<Service | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [service, setService] = useState<Service | null>(null)
 
-  const [appointmentDate, setAppointmentDate] = useState("");
-  const [timeSlot, setTimeSlot] = useState("");
-  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+
+  const [appointmentDate, setAppointmentDate] = useState("")
+  const [timeSlot, setTimeSlot] = useState("")
+  const [message, setMessage] = useState("")
 
   // Today's date
   const getTodayDate = () => {
-    const today = new Date();
+    const today = new Date()
 
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
+    const year = today.getFullYear()
+    const month = String(today.getMonth() + 1).padStart(2, "0")
+    const day = String(today.getDate()).padStart(2, "0")
 
-    return `${year}-${month}-${day}`;
-  };
+    return `${year}-${month}-${day}`
+  }
 
   // Authentication Check
   useEffect(() => {
-    if (isPending) return;
+    if (isPending) return
 
     if (!session?.user) {
-      toast.error("Please login to book an appointment.");
-      router.replace("/sign-In");
-      return;
+      toast.error("Please login to book an appointment.")
+      router.replace("/sign-In")
+      return
     }
 
     if (role !== "customer") {
-      toast.error("Only customers can book appointments.");
+      toast.error("Only customers can book appointments.")
 
       if (role === "admin") {
-        router.replace("/dashboard/admin");
+        router.replace("/dashboard/admin")
       } else {
-        router.replace("/sign-In");
+        router.replace("/sign-In")
       }
     }
-  }, [session, isPending, role, router]);
+  }, [session, isPending, role, router])
 
   // Fetch Service
   useEffect(() => {
-    if (!id) return;
+    if (!id) return
 
-    let isMounted = true;
+    let isMounted = true
 
     const fetchService = async () => {
       try {
-        setLoading(true);
+        setLoading(true)
 
-        const data = await getServiceDetails(id);
+        const data = await getServiceDetails(id)
 
         if (!data || !data.isActive) {
-          throw new Error("This service is currently unavailable.");
+          throw new Error("This service is currently unavailable.")
         }
 
         if (isMounted) {
-          setService(data);
+          setService(data)
         }
       } catch (error) {
         if (isMounted) {
           toast.error(
-            error instanceof Error
-              ? error.message
-              : "Failed to load service."
-          );
-          setService(null);
+            error instanceof Error ? error.message : "Failed to load service."
+          )
+
+          setService(null)
         }
       } finally {
         if (isMounted) {
-          setLoading(false);
+          setLoading(false)
         }
       }
-    };
+    }
 
-    fetchService();
+    fetchService()
 
     return () => {
-      isMounted = false;
-    };
-  }, [id]);
+      isMounted = false
+    }
+  }, [id])
 
   // Submit Booking
-  const handleBooking = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault();
+
+  const handleBooking = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    if (submitting) return
 
     if (!session?.user || role !== "customer") {
-      toast.error("Only customers can book appointments.");
-      return;
+      toast.error("Only customers can book appointments.")
+      return
     }
 
     if (!service) {
-      toast.error("Service information not found.");
-      return;
+      toast.error("Service information not found.")
+      return
     }
 
-    if (!appointmentDate || !timeSlot) {
-      toast.error("Please select date and time.");
-      return;
+    if (!appointmentDate) {
+      toast.error("Please select appointment date.")
+      return
     }
 
     if (appointmentDate < getTodayDate()) {
-      toast.error("Please select a valid appointment date.");
-      return;
+      toast.error("Please select a valid appointment date.")
+      return
+    }
+
+    if (!timeSlot) {
+      toast.error("Please select a time slot.")
+      return
     }
 
     if (message.trim().length > 500) {
-      toast.error("Message cannot exceed 500 characters.");
-      return;
+      toast.error("Message cannot exceed 500 characters.")
+      return
     }
 
     try {
-      setSubmitting(true);
+      setSubmitting(true)
 
       await createAppointmentApi({
         userId: session.user.id,
@@ -173,23 +178,35 @@ export default function BookingPage() {
         appointmentDate,
         timeSlot,
         message: message.trim(),
-      });
+      })
 
-      toast.success("Appointment request submitted successfully!");
+      toast.success("Appointment request submitted successfully!")
 
-      router.push("/dashboard/appointments");
+      router.push("/dashboard/appointments")
     } catch (error) {
-      console.error("Booking Error:", error);
-
-      toast.error(
+      const errorMessage =
         error instanceof Error
           ? error.message
           : "Booking failed. Please try again."
-      );
+
+      if (errorMessage.toLowerCase().includes("blocked")) {
+        toast.error(
+          "Your account has been blocked. You cannot book appointments.",
+          { duration: 1500 }
+        )
+
+        setTimeout(() => {
+          router.replace("/")
+        }, 1500)
+
+        return
+      }
+
+      toast.error(errorMessage)
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
   // Loading
   if (loading || isPending) {
@@ -197,17 +214,18 @@ export default function BookingPage() {
       <div className="flex min-h-[70vh] items-center justify-center bg-[#FFFDF9]">
         <div className="text-center">
           <Loader2 className="mx-auto h-10 w-10 animate-spin text-[#873C52]" />
+
           <p className="mt-4 text-sm text-gray-500">
             Loading booking information...
           </p>
         </div>
       </div>
-    );
+    )
   }
 
   // Role Check
   if (!session?.user || role !== "customer") {
-    return null;
+    return null
   }
 
   // Service Error
@@ -216,9 +234,7 @@ export default function BookingPage() {
       <div className="flex min-h-[70vh] flex-col items-center justify-center bg-[#FFFDF9] px-4 text-center">
         <Scissors className="mb-4 h-12 w-12 text-[#873C52]" />
 
-        <h2 className="text-2xl font-bold text-[#55102A]">
-          Service Not Found
-        </h2>
+        <h2 className="text-2xl font-bold text-[#55102A]">Service Not Found</h2>
 
         <p className="mt-3 text-sm text-gray-500">
           This service is unavailable or may have been removed.
@@ -231,13 +247,12 @@ export default function BookingPage() {
           Browse Services
         </Button>
       </div>
-    );
+    )
   }
 
   return (
     <main className="min-h-screen bg-[#FFFDF9] px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
-
         {/* Back */}
         <Link
           href={`/services/${service._id}`}
@@ -249,7 +264,7 @@ export default function BookingPage() {
 
         {/* Heading */}
         <div className="mb-10">
-          <p className="text-sm font-semibold uppercase tracking-widest text-[#873C52]">
+          <p className="text-sm font-semibold tracking-widest text-[#873C52] uppercase">
             SalonBook Appointment
           </p>
 
@@ -258,30 +273,33 @@ export default function BookingPage() {
           </h1>
 
           <p className="mt-3 max-w-xl text-sm leading-6 text-gray-500">
-            Choose your preferred appointment date and time.
-            Complete the form below to submit your booking request.
+            Choose your preferred appointment date and time. Complete the form
+            below to submit your booking request.
           </p>
         </div>
 
         <div className="grid items-start gap-8 lg:grid-cols-5">
-
           {/* Service Information */}
           <div className="overflow-hidden rounded-2xl border border-[#E8C9CE]/60 bg-white shadow-sm lg:col-span-2">
-
             <div className="relative h-64 w-full">
-              <Image
-                src={service.image}
-                alt={service.name}
-                fill
-                unoptimized
-                priority
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 40vw"
-              />
+              {service.image ? (
+                <Image
+                  src={service.image}
+                  alt={service.name}
+                  fill
+                  unoptimized
+                  priority
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 40vw"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center bg-[#F8E9EC]">
+                  <Scissors className="h-16 w-16 text-[#873C52]" />
+                </div>
+              )}
             </div>
 
             <div className="p-6">
-
               <span className="rounded-full bg-[#F8E9EC] px-3 py-1.5 text-xs font-semibold text-[#873C52]">
                 {service.category}
               </span>
@@ -295,11 +313,8 @@ export default function BookingPage() {
               </p>
 
               <div className="mt-6 space-y-4 border-t border-[#E8C9CE]/50 pt-5">
-
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">
-                    Service Price
-                  </span>
+                  <span className="text-sm text-gray-500">Service Price</span>
 
                   <span className="text-xl font-bold text-[#873C52]">
                     ৳{service.price}
@@ -327,14 +342,12 @@ export default function BookingPage() {
                     Available
                   </span>
                 </div>
-
               </div>
             </div>
           </div>
 
           {/* Booking Form */}
           <div className="rounded-2xl border border-[#E8C9CE]/60 bg-white p-6 shadow-sm sm:p-8 lg:col-span-3">
-
             <h2 className="text-xl font-bold text-[#55102A]">
               Appointment Information
             </h2>
@@ -343,11 +356,7 @@ export default function BookingPage() {
               Select your desired date and available time slot.
             </p>
 
-            <form
-              onSubmit={handleBooking}
-              className="mt-8 space-y-7"
-            >
-
+            <form onSubmit={handleBooking} className="mt-8 space-y-7">
               {/* Date */}
               <div>
                 <label
@@ -365,7 +374,7 @@ export default function BookingPage() {
                   value={appointmentDate}
                   onChange={(e) => setAppointmentDate(e.target.value)}
                   required
-                  className="w-full rounded-xl border border-[#E8C9CE] bg-[#FFFDF9] px-4 py-3.5 text-sm text-[#55102A] outline-none transition focus:border-[#873C52] focus:ring-2 focus:ring-[#873C52]/10"
+                  className="w-full rounded-xl border border-[#E8C9CE] bg-[#FFFDF9] px-4 py-3.5 text-sm text-[#55102A] transition outline-none focus:border-[#873C52] focus:ring-2 focus:ring-[#873C52]/10"
                 />
               </div>
 
@@ -381,8 +390,9 @@ export default function BookingPage() {
                     <button
                       key={slot}
                       type="button"
+                      disabled={submitting}
                       onClick={() => setTimeSlot(slot)}
-                      className={`rounded-xl border px-3 py-3.5 text-sm font-medium transition ${
+                      className={`rounded-xl border px-3 py-3.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60 ${
                         timeSlot === slot
                           ? "border-[#873C52] bg-[#873C52] text-white shadow-md"
                           : "border-[#E8C9CE] bg-[#FFFDF9] text-[#55102A] hover:border-[#873C52] hover:bg-[#F8E9EC]"
@@ -419,7 +429,7 @@ export default function BookingPage() {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Write any special requests..."
-                  className="w-full resize-none rounded-xl border border-[#E8C9CE] bg-[#FFFDF9] px-4 py-3 text-sm text-[#55102A] outline-none transition placeholder:text-gray-400 focus:border-[#873C52] focus:ring-2 focus:ring-[#873C52]/10"
+                  className="w-full resize-none rounded-xl border border-[#E8C9CE] bg-[#FFFDF9] px-4 py-3 text-sm text-[#55102A] transition outline-none placeholder:text-gray-400 focus:border-[#873C52] focus:ring-2 focus:ring-[#873C52]/10"
                 />
 
                 <p className="mt-2 text-right text-xs text-gray-400">
@@ -432,16 +442,16 @@ export default function BookingPage() {
                 <Info className="mt-0.5 h-5 w-5 shrink-0 text-[#873C52]" />
 
                 <p className="text-sm leading-6 text-[#873C52]">
-                  Your appointment request will initially have Pending
-                  status. Once the admin confirms it, you can pay for
-                  your appointment from My Appointments.
+                  Your appointment request will initially have Pending status.
+                  Once the admin confirms it, you can pay for your appointment
+                  from My Appointments.
                 </p>
               </div>
 
               {/* Submit */}
               <Button
                 type="submit"
-                disabled={submitting || !timeSlot}
+                disabled={submitting || !timeSlot || !appointmentDate}
                 className="h-14 w-full rounded-full bg-[#873C52] text-base font-semibold text-white shadow-md transition hover:bg-[#6F3043] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {submitting ? (
@@ -460,11 +470,10 @@ export default function BookingPage() {
               <p className="text-center text-xs text-gray-400">
                 No payment is required until your appointment is confirmed.
               </p>
-
             </form>
           </div>
         </div>
       </div>
     </main>
-  );
+  )
 }

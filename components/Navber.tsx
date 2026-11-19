@@ -1,10 +1,9 @@
+"use client"
 
-"use client";
-
-import Link from "next/link";
-import Image from "next/image";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link"
+import Image from "next/image"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 import {
   Menu,
@@ -13,7 +12,7 @@ import {
   LayoutDashboard,
   LogOut,
   Loader2,
-} from "lucide-react";
+} from "lucide-react"
 
 import {
   Sheet,
@@ -21,31 +20,27 @@ import {
   SheetHeader,
   SheetTrigger,
   SheetClose,
-} from "@/components/ui/sheet";
+} from "@/components/ui/sheet"
 
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client"
 
 const Navbar = () => {
-  const router = useRouter();
+  const router = useRouter()
 
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session, isPending } = authClient.useSession()
 
   // Get logged-in user's role
   const role = (
     session?.user as { role?: string } | undefined
-  )?.role?.toLowerCase();
+  )?.role?.toLowerCase()
 
-  const isAdmin = role === "admin";
-  const isCustomer = role === "customer";
+  const isAdmin = role === "admin"
+  const isCustomer = role === "customer"
 
   // Role based dashboard URL
-  const dashboardUrl = isAdmin
-    ? "/dashboard/admin"
-    : "/dashboard";
+  const dashboardUrl = isAdmin ? "/dashboard/admin" : "/dashboard"
 
-  const dashboardLabel = isAdmin
-    ? "Admin Dashboard"
-    : "My Dashboard";
+  const dashboardLabel = isAdmin ? "Admin Dashboard" : "My Dashboard"
 
   const navLinks = [
     { label: "Home", href: "/" },
@@ -55,38 +50,37 @@ const Navbar = () => {
     { label: "Services", href: "/services" },
     { label: "About Us", href: "/about" },
     { label: "Contact", href: "/contact" },
-  ];
+  ]
 
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   // Sign Out
   const handleSignOut = async () => {
     try {
-      setLoading(true);
+      setLoading(true)
 
-      const { error } = await authClient.signOut();
+      const { error } = await authClient.signOut()
 
       if (error) {
-        console.error("Sign out failed:", error.message);
-        return;
+        console.error("Sign out failed:", error.message)
+        return
       }
 
-      setProfileOpen(false);
+      setProfileOpen(false)
 
-      router.replace("/");
-      router.refresh();
+      router.replace("/")
+      router.refresh()
     } catch (error) {
-      console.error("Sign out failed:", error);
+      console.error("Sign out failed:", error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#E8C9CE]/50 bg-[#FFFDF9]/95 backdrop-blur-md">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
-
         {/* LEFT: LOGO */}
         <Link href="/" className="flex items-center gap-2">
           <Image
@@ -112,13 +106,11 @@ const Navbar = () => {
           ))}
         </div>
 
-        {/* RIGHT: AUTH BUTTONS / PROFILE */}
         <div className="hidden items-center justify-end gap-3 md:flex">
           {isPending ? (
             <div className="h-10 w-10 animate-pulse rounded-full bg-[#E8C9CE]/50" />
           ) : session?.user ? (
             <div className="relative">
-
               {/* PROFILE BUTTON */}
               <button
                 type="button"
@@ -131,6 +123,7 @@ const Navbar = () => {
                   <Image
                     src={session.user.image}
                     alt="User Profile"
+                    referrerPolicy="no-referrer"
                     width={40}
                     height={40}
                     unoptimized
@@ -154,7 +147,6 @@ const Navbar = () => {
                   />
 
                   <div className="absolute right-0 z-50 mt-3 w-60 rounded-xl border border-[#E8C9CE] bg-white p-3 shadow-xl">
-
                     {/* USER INFO */}
                     <div className="border-b border-gray-100 px-3 py-2">
                       <p className="font-semibold text-[#292323]">
@@ -165,7 +157,7 @@ const Navbar = () => {
                         {session.user.email}
                       </p>
 
-                      <p className="mt-1 text-xs font-semibold capitalize text-[#873C52]">
+                      <p className="mt-1 text-xs font-semibold text-[#873C52] capitalize">
                         {role || "User"}
                       </p>
                     </div>
@@ -259,7 +251,6 @@ const Navbar = () => {
               </SheetHeader>
 
               <div className="mt-8 flex flex-col gap-5 px-4">
-
                 {/* NAV LINKS */}
                 {navLinks.map((link) => (
                   <SheetClose key={link.href}>
@@ -284,6 +275,7 @@ const Navbar = () => {
                           <Image
                             src={session.user.image}
                             alt="User Profile"
+                            referrerPolicy="no-referrer"
                             width={44}
                             height={44}
                             unoptimized
@@ -304,7 +296,7 @@ const Navbar = () => {
                             {session.user.email}
                           </p>
 
-                          <p className="text-xs font-semibold capitalize text-[#873C52]">
+                          <p className="text-xs font-semibold text-[#873C52] capitalize">
                             {role || "User"}
                           </p>
                         </div>
@@ -379,7 +371,7 @@ const Navbar = () => {
         </div>
       </nav>
     </header>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar
