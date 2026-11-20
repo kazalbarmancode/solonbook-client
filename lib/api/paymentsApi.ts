@@ -13,7 +13,25 @@ interface CheckoutResponse {
   url: string;
   sessionId: string;
 }
+export interface Transaction {
+  _id: string;
+  stripeSessionId: string;
+  amount: number;
+  currency: string;
+  appointmentId: string;
+  userId: string;
+  paymentStatus: string;
+  createdAt: string;
+  customerName?: string;
+  customerEmail?: string;
+  serviceName?: string;
+}
 
+interface TransactionsResponse {
+  success: boolean;
+  total: number;
+  data: Transaction[];
+}
 export const createCheckoutSessionApi = async (
   appointmentId: string,
   userId: string
@@ -70,3 +88,26 @@ export const verifyPaymentApi = async (
 
   return result;
 };
+export const getAdminTransactionsApi =
+  async (): Promise<TransactionsResponse> => {
+    const response = await fetch(
+      `${API_URL}/admin/transactions`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(
+        result.message || "Failed to fetch transactions"
+      );
+    }
+
+    return result;
+  };

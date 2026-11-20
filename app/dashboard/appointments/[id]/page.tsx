@@ -118,7 +118,7 @@ export default function AppointmentDetailsPage() {
   // Session loading
   if (isPending) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
+      <div className="flex min-h-100 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-[#873C52]" />
       </div>
     );
@@ -127,7 +127,7 @@ export default function AppointmentDetailsPage() {
   // Sign In required
   if (!userId) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center text-center">
+      <div className="flex min-h-100 flex-col items-center justify-center text-center">
         <h2 className="text-xl font-bold text-[#55102A]">
           Please Sign In
         </h2>
@@ -149,7 +149,7 @@ export default function AppointmentDetailsPage() {
   // Data loading
   if (loading) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
+      <div className="flex min-h-100 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-[#873C52]" />
       </div>
     );
@@ -158,7 +158,7 @@ export default function AppointmentDetailsPage() {
   // Error or not found
   if (error || !appointment) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center text-center">
+      <div className="flex min-h-100 flex-col items-center justify-center text-center">
         <ClipboardList className="h-12 w-12 text-[#D9AEB7]" />
 
         <h2 className="mt-4 text-xl font-bold text-[#55102A]">
@@ -220,7 +220,7 @@ export default function AppointmentDetailsPage() {
                 className="object-cover"
               />
             ) : (
-              <div className="flex h-full min-h-[220px] items-center justify-center">
+              <div className="flex h-full min-h-55 items-center justify-center">
                 <Scissors className="h-16 w-16 text-[#873C52]" />
               </div>
             )}

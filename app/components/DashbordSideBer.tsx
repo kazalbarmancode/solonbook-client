@@ -11,7 +11,6 @@ import {
   Scissors,
   Users,
   CreditCard,
-  Sparkles,
   ChevronRight,
   Heart,
 } from "lucide-react";
@@ -127,14 +126,7 @@ export default function DashboardSideBar({
         {/* Profile */}
         <div className="mx-3 mt-6 rounded-2xl border border-white/10 bg-white/10 p-3 group-data-[collapsible=icon]:mx-2 group-data-[collapsible=icon]:p-2">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#E8C9CE] text-[#55102A]">
-              {isAdmin ? (
-                <Sparkles size={20} />
-              ) : (
-                <UserRound size={20} />
-              )}
-            </div>
-
+           
             <div className="min-w-0 group-data-[collapsible=icon]:hidden">
               <p className="truncate text-sm font-semibold text-white">
                 {isAdmin ? "Administrator" : "Customer"}
