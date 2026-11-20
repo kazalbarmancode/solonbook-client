@@ -5,16 +5,17 @@ export const authClient = createAuthClient({
       plugins: [
     adminClient(),
     inferAdditionalFields({
-      user: {
-        role: {
-          type: "string",
-        },
-        phone: {
-          type: "string",
-          required: false,
-        },
-      },
-    }),
+  user: {
+    role: {
+      type: "string",
+      required: false,
+    },
+    phone: {
+      type: "string",
+      required: false,
+    },
+  },
+}),
   ],
 });
 export const { signIn, signUp, useSession } = authClient

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from "react"
@@ -36,9 +35,7 @@ export default function SignUpPage() {
   const [errorMsg, setErrorMsg] = useState("")
 
   // Profile Image Preview
-  const handleImageChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
 
     if (!file) return
@@ -48,8 +45,8 @@ export default function SignUpPage() {
       return
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      setErrorMsg("Image size must be less than 2MB.")
+    if (file.size > 10 * 1024 * 1024) {
+      setErrorMsg("Image size must be less than 10MB.")
       return
     }
 
@@ -73,82 +70,108 @@ export default function SignUpPage() {
   }
 
   // Signup Handler
-  const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault()
-    setErrorMsg("")
+  
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setErrorMsg("");
 
-    if (name.trim().length < 2) {
-      setErrorMsg("Please enter your full name.")
-      return
-    }
+  if (name.trim().length < 2) {
+    setErrorMsg("Please enter your full name.");
+    return;
+  }
 
-    if (password.length < 6) {
-      setErrorMsg("Password must be at least 6 characters.")
-      return
-    }
+  if (password.length < 6) {
+    setErrorMsg("Password must be at least 6 characters.");
+    return;
+  }
 
-    if (!/[A-Z]/.test(password)) {
-      setErrorMsg("Password must contain an uppercase letter.")
-      return
-    }
+  if (!/[A-Z]/.test(password)) {
+    setErrorMsg("Password must contain an uppercase letter.");
+    return;
+  }
 
-    if (!/[a-z]/.test(password)) {
-      setErrorMsg("Password must contain a lowercase letter.")
-      return
-    }
+  if (!/[a-z]/.test(password)) {
+    setErrorMsg("Password must contain a lowercase letter.");
+    return;
+  }
 
-    try {
-      setLoading(true)
+  try {
+    setLoading(true);
 
-      const { error } = await signUp.email({
-        name: name.trim(),
-        email: email.trim(),
-        password,
-        callbackURL: "/",
-      })
+    let uploadedImageUrl = "";
 
-      if (error) {
-        setErrorMsg(error.message || "Unable to create account.")
-        return
+    if (profileImage) {
+      const formData = new FormData();
+      formData.append("image", profileImage);
+
+      const uploadResponse = await fetch("/api/upload-image", {
+        method: "POST",
+        body: formData,
+      });
+
+      const uploadResult = await uploadResponse.json();
+
+      if (!uploadResponse.ok || !uploadResult.success) {
+        throw new Error(
+          uploadResult.message || "Image upload failed."
+        );
       }
 
-      router.push("/")
-      router.refresh()
-    } catch {
-      setErrorMsg("Something went wrong. Please try again.")
-    } finally {
-      setLoading(false)
+      uploadedImageUrl = uploadResult.url;
     }
+
+    const { error } = await signUp.email({
+      name: name.trim(),
+      email: email.trim(),
+      password,
+      image: uploadedImageUrl || undefined,
+      callbackURL: "/",
+    });
+
+    if (error) {
+      setErrorMsg(error.message || "Unable to create account.");
+      return;
+    }
+
+    router.push("/");
+    router.refresh();
+
+  } catch (error) {
+    setErrorMsg(
+      error instanceof Error
+        ? error.message
+        : "Something went wrong. Please try again."
+    );
+  } finally {
+    setLoading(false);
   }
+};
+
 
   // Google Signup
   const handleGoogleSignUp = async () => {
-  setErrorMsg("");
+    setErrorMsg("")
 
-  try {
-    setGoogleLoading(true);
+    try {
+      setGoogleLoading(true)
 
-    await authClient.signIn.social({
-      provider: "google",
-      callbackURL: "/",
-    });
-  } catch (error) {
-    console.error("Google Sign Up Error:", error);
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/",
+      })
+    } catch (error) {
+      console.error("Google Sign Up Error:", error)
 
-    setErrorMsg("Google sign up failed. Please try again.");
-    setGoogleLoading(false);
+      setErrorMsg("Google sign up failed. Please try again.")
+      setGoogleLoading(false)
+    }
   }
-};
 
   return (
     <main className="min-h-screen bg-[#FFFDF9] px-4 py-12">
       <div className="mx-auto grid max-w-6xl overflow-hidden rounded-3xl bg-white shadow-xl lg:min-h-187 lg:grid-cols-2">
-
         {/* Left Side */}
         <div className="relative hidden flex-col justify-between overflow-hidden bg-linear-to-br from-[#55102A] via-[#6F203D] to-[#873C52] p-12 text-white lg:flex">
-
           <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full border border-white/10" />
 
           <div className="absolute -bottom-28 -left-20 h-96 w-96 rounded-full border border-white/10" />
@@ -165,15 +188,12 @@ export default function SignUpPage() {
           <div className="relative z-10 max-w-md">
             <h1 className="text-5xl leading-tight font-bold">
               Your Beauty,
-              <span className="block text-[#E8C9CE]">
-                Your Moment.
-              </span>
+              <span className="block text-[#E8C9CE]">Your Moment.</span>
             </h1>
 
             <p className="mt-6 leading-8 text-white/75">
-              Join SalonBook and discover professional beauty
-              services. Book your favorite treatments and enjoy
-              a relaxing salon experience.
+              Join SalonBook and discover professional beauty services. Book
+              your favorite treatments and enjoy a relaxing salon experience.
             </p>
           </div>
 
@@ -185,7 +205,6 @@ export default function SignUpPage() {
         {/* Right Side */}
         <div className="flex items-center justify-center px-6 py-12 sm:px-12">
           <div className="w-full max-w-md">
-
             {/* Logo */}
             <Image
               src="/images/SalonBook Beauty Logo.png"
@@ -213,13 +232,10 @@ export default function SignUpPage() {
 
             {/* Signup Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
-
               {/* Profile Image */}
               <div className="flex flex-col items-center">
                 <div className="relative">
-
                   <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-[#E8C9CE] bg-[#FFF5F5]">
-
                     {previewImage ? (
                       <Image
                         src={previewImage}
@@ -230,10 +246,7 @@ export default function SignUpPage() {
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <ImagePlus
-                        size={28}
-                        className="text-[#873C52]"
-                      />
+                      <ImagePlus size={28} className="text-[#873C52]" />
                     )}
                   </div>
 
@@ -339,11 +352,7 @@ export default function SignUpPage() {
                     className="absolute top-1/2 right-4 -translate-y-1/2 text-gray-500"
                     aria-label="Toggle password visibility"
                   >
-                    {showPassword ? (
-                      <EyeOff size={18} />
-                    ) : (
-                      <Eye size={18} />
-                    )}
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
 
@@ -380,9 +389,7 @@ export default function SignUpPage() {
             <div className="my-5 flex items-center gap-4">
               <div className="h-px flex-1 bg-[#E8C9CE]" />
 
-              <span className="text-xs text-gray-400">
-                OR CONTINUE WITH
-              </span>
+              <span className="text-xs text-gray-400">OR CONTINUE WITH</span>
 
               <div className="h-px flex-1 bg-[#E8C9CE]" />
             </div>
@@ -417,7 +424,6 @@ export default function SignUpPage() {
                   />
                 </svg>
               )}
-
               Continue with Google
             </Button>
 
@@ -436,7 +442,6 @@ export default function SignUpPage() {
             <p className="mt-6 text-center text-xs text-gray-400">
               By creating an account, you agree to our Terms & Conditions.
             </p>
-
           </div>
         </div>
       </div>
