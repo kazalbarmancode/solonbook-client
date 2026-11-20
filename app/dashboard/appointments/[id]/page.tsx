@@ -209,7 +209,7 @@ export default function AppointmentDetailsPage() {
       <div className="overflow-hidden rounded-xl border border-[#E8C9CE] bg-white shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-[280px_1fr]">
           {/* Service Image */}
-          <div className="relative min-h-[220px] bg-[#F9EEF0]">
+          <div className="relative min-h-55 bg-[#F9EEF0]">
             {appointment.serviceImage ? (
               <Image
                 src={appointment.serviceImage}
