@@ -100,7 +100,7 @@ const handleGoogleSignIn = async () => {
 
     await authClient.signIn.social({
       provider: "google",
-      callbackURL: "/auth/redirect",
+      callbackURL: "/",
     });
   } catch (error) {
     console.error("Google sign in error:", error);

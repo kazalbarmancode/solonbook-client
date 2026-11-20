@@ -25,6 +25,12 @@ user: {
       input: false,
       returned: true,
     },
+    phone: {
+      type: "string",
+      required: false,
+      input: true,
+      returned: true,
+    },
   },
 },
  plugins: [
