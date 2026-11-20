@@ -9,7 +9,7 @@ const HeroBanner = () => {
       <section className="relative flex min-h-[calc(100svh-64px)] w-full items-center overflow-hidden">
 
         <Image
-          src="/images/Hero banner.jpg"
+          src="/images/heroBanner.jpg"
           alt="Luxury beauty salon"
           fill
           priority
