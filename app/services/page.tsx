@@ -1,9 +1,10 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useMemo, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import {
   Search,
@@ -19,73 +20,80 @@ import {
 import type { Service } from "@/lib/api/servicesDetailsPageApi";
 import { getFeaturedApi } from "@/lib/api/futureApi";
 
-export default function ServicesPage() {
+function ServicesContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
+
+  // Category comes directly from URL
+  const selectedCategory = searchParams.get("category") || "All";
 
   // Fetch All Services
-  // Retry Function
-const fetchServices = async () => {
-  try {
-    setLoading(true);
-    setError("");
+  const fetchServices = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-    const data = await getFeaturedApi();
+      const data = await getFeaturedApi();
 
-    setServices(data.filter((service) => service.isActive));
-  } catch (err) {
-    console.error("Services fetch error:", err);
+      setServices(data.filter((service) => service.isActive));
+    } catch (err) {
+      console.error("Services fetch error:", err);
 
-    setError(
-      err instanceof Error
-        ? err.message
-        : "Something went wrong."
-    );
-  } finally {
-    setLoading(false);
-  }
-};
-
-// Initial API Fetch
-useEffect(() => {
-  let cancelled = false;
-
-  getFeaturedApi()
-    .then((data) => {
-      if (!cancelled) {
-        setServices(data.filter((service) => service.isActive));
-      }
-    })
-    .catch((err) => {
-      if (!cancelled) {
-        console.error("Services fetch error:", err);
-
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Something went wrong."
-        );
-      }
-    })
-    .finally(() => {
-      if (!cancelled) {
-        setLoading(false);
-      }
-    });
-
-  return () => {
-    cancelled = true;
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
-}, []);
+
+  // Initial API Fetch
+  useEffect(() => {
+    let cancelled = false;
+
+    getFeaturedApi()
+      .then((data) => {
+        if (!cancelled) {
+          setServices(data.filter((service) => service.isActive));
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error("Services fetch error:", err);
+
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Something went wrong."
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Dynamic Categories
   const categories = useMemo(() => {
     const uniqueCategories = Array.from(
-      new Set(services.map((service) => service.category))
+      new Set(
+        services
+          .map((service) => service.category?.trim())
+          .filter((category): category is string => Boolean(category))
+      )
     );
 
     return ["All", ...uniqueCategories];
@@ -96,15 +104,36 @@ useEffect(() => {
     return services.filter((service) => {
       const matchesSearch =
         service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        service.description.toLowerCase().includes(searchTerm.toLowerCase());
+        (service.description || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
 
       const matchesCategory =
         selectedCategory === "All" ||
-        service.category === selectedCategory;
+        service.category?.trim().toLowerCase() ===
+          selectedCategory.trim().toLowerCase();
 
       return matchesSearch && matchesCategory;
     });
   }, [services, searchTerm, selectedCategory]);
+
+  // Change Category
+  const handleCategoryChange = (category: string) => {
+    if (category === "All") {
+      router.replace("/services", { scroll: false });
+    } else {
+      router.replace(
+        `/services?category=${encodeURIComponent(category)}`,
+        { scroll: false }
+      );
+    }
+  };
+
+  // Clear Filters
+  const clearFilters = () => {
+    setSearchTerm("");
+    router.replace("/services", { scroll: false });
+  };
 
   return (
     <main className="min-h-screen bg-[#FFFDF9]">
@@ -217,9 +246,9 @@ useEffect(() => {
             {categories.map((category) => (
               <button
                 key={category}
-                onClick={() => setSelectedCategory(category)}
+                onClick={() => handleCategoryChange(category)}
                 className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${
-                  selectedCategory === category
+                  selectedCategory.toLowerCase() === category.toLowerCase()
                     ? "bg-[#873C52] text-white shadow-md"
                     : "border border-[#E8C9CE] bg-white text-gray-600 hover:border-[#873C52] hover:text-[#873C52]"
                 }`}
@@ -243,10 +272,7 @@ useEffect(() => {
 
           {(searchTerm || selectedCategory !== "All") && (
             <button
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedCategory("All");
-              }}
+              onClick={clearFilters}
               className="text-sm font-semibold text-[#873C52] hover:text-[#55102A]"
             >
               Clear Filters
@@ -310,10 +336,7 @@ useEffect(() => {
             </p>
 
             <button
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedCategory("All");
-              }}
+              onClick={clearFilters}
               className="mt-6 rounded-full bg-[#873C52] px-6 py-3 text-sm font-semibold text-white hover:bg-[#6F3043]"
             >
               Show All Services
@@ -419,5 +442,20 @@ useEffect(() => {
       </section>
 
     </main>
+  );
+}
+
+// Main Page with Suspense
+export default function ServicesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin text-[#873C52]" />
+        </div>
+      }
+    >
+      <ServicesContent />
+    </Suspense>
   );
 }

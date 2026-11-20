@@ -24,12 +24,30 @@ function PaymentSuccessContent() {
 
     const verifyPayment = async () => {
       try {
-        const result = await verifyPaymentApi(sessionId);
+        let paymentConfirmed = false;
 
-        setSuccess(true);
-        setMessage(
-          result.message || "Your payment has been verified successfully!"
-        );
+        // Wait up to 10 times for webhook database update
+        for (let attempt = 0; attempt < 10; attempt++) {
+          const result = await verifyPaymentApi(sessionId);
+
+          if (result.paymentStatus === "Paid") {
+            paymentConfirmed = true;
+            setSuccess(true);
+            setMessage("Your payment has been verified successfully!");
+            break;
+          }
+
+          // Wait 2 seconds before checking again
+          if (attempt < 9) {
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+          }
+        }
+
+        if (!paymentConfirmed) {
+          setError(
+            "Payment received, but confirmation is still processing. Please check My Appointments again shortly."
+          );
+        }
       } catch (err) {
         console.error("Payment verification error:", err);
 
@@ -46,7 +64,6 @@ function PaymentSuccessContent() {
     verifyPayment();
   }, [sessionId]);
 
-  // Session ID না থাকলে সরাসরি error দেখাবে
   const missingSession = !sessionId;
 
   return (
@@ -59,7 +76,7 @@ function PaymentSuccessContent() {
               Verifying Payment
             </h1>
             <p className="mt-3 text-gray-600">
-              Please wait while we verify your payment.
+              Please wait while we confirm your payment.
             </p>
           </>
         ) : success ? (
@@ -74,9 +91,9 @@ function PaymentSuccessContent() {
           <>
             <div className="mb-4 text-5xl">❌</div>
             <h1 className="text-2xl font-bold text-red-600">
-              Payment Verification Failed
+              Payment Confirmation Pending
             </h1>
-            <p className="mt-3 text-sm text-red-500">
+            <p className="mt-3 text-sm text-gray-600">
               {missingSession
                 ? "Payment session ID not found."
                 : error}

@@ -1,10 +1,13 @@
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  
 interface VerifyPaymentResponse {
   success: boolean;
   message: string;
   paymentStatus?: string;
+  stripePaymentStatus?: string;
 }
 
 interface CheckoutResponse {

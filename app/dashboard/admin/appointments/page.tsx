@@ -1,9 +1,8 @@
+"use client"
 
-"use client";
-
-import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
+import { useCallback, useEffect, useMemo, useState } from "react"
+import Link from "next/link"
+import Image from "next/image"
 import {
   CalendarDays,
   Clock,
@@ -15,91 +14,88 @@ import {
   ClipboardList,
   Scissors,
   CreditCard,
-} from "lucide-react";
-import toast from "react-hot-toast";
+} from "lucide-react"
+import toast from "react-hot-toast"
 import {
   getAllAppointmentsApi,
   updateAppointmentStatusApi,
   type Appointment,
-} from "@/lib/api/appointmentsApi";
+} from "@/lib/api/appointmentsApi"
 
-type StatusFilter =
-  | "All"
-  | "Pending"
-  | "Confirmed"
-  | "Completed"
-  | "Cancelled";
+type StatusFilter = "All" | "Pending" | "Confirmed" | "Completed" | "Cancelled"
 
 export default function AdminAppointmentsPage() {
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] =
-    useState<StatusFilter>("All");
+  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [loading, setLoading] = useState(true)
+  const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("All")
 
   const fetchAppointments = useCallback(async () => {
     try {
-      setLoading(true);
+      setLoading(true)
 
-      const data = await getAllAppointmentsApi();
-      setAppointments(data);
+      const data = await getAllAppointmentsApi()
+      setAppointments(data)
     } catch (error) {
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to load appointments"
-      );
+        error instanceof Error ? error.message : "Failed to load appointments"
+      )
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, []);
+  }, [])
 
- useEffect(() => {
-  let ignore = false;
+  useEffect(() => {
+    let ignore = false
 
-  const loadAppointments = async () => {
-    try {
-      setLoading(true);
+    const loadAppointments = async () => {
+      try {
+        setLoading(true)
 
-      const data = await getAllAppointmentsApi();
+        const data = await getAllAppointmentsApi()
 
-      if (!ignore) {
-        setAppointments(data);
-      }
-    } catch (error) {
-      if (!ignore) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Failed to load appointments"
-        );
-      }
-    } finally {
-      if (!ignore) {
-        setLoading(false);
+        if (!ignore) {
+          setAppointments(data)
+        }
+      } catch (error) {
+        if (!ignore) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Failed to load appointments"
+          )
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false)
+        }
       }
     }
-  };
 
-  loadAppointments();
+    loadAppointments()
 
-  return () => {
-    ignore = true;
-  };
-}, []);
+    return () => {
+      ignore = true
+    }
+  }, [])
 
   const handleStatusUpdate = async (
     id: string,
     status: Appointment["status"]
   ) => {
-    try {
-      setUpdatingId(id);
+    const appointment = appointments.find((a) => a._id === id)
 
-      const updatedAppointment = await updateAppointmentStatusApi(
-        id,
-        status
-      );
+    // Prevent completing an unpaid appointment
+    if (status === "Completed" && appointment?.paymentStatus !== "Paid") {
+      toast.error("Payment must be completed before completing appointment.")
+      return
+    }
+
+    try {
+      setUpdatingId(id)
+
+      const updatedAppointment = await updateAppointmentStatusApi(id, status)
 
       setAppointments((prev) =>
         prev.map((appointment) =>
@@ -107,40 +103,33 @@ export default function AdminAppointmentsPage() {
             ? { ...appointment, ...updatedAppointment }
             : appointment
         )
-      );
+      )
 
-      toast.success(`Appointment ${status.toLowerCase()} successfully`);
+      toast.success(`Appointment ${status.toLowerCase()} successfully`)
     } catch (error) {
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to update appointment"
-      );
+        error instanceof Error ? error.message : "Failed to update appointment"
+      )
     } finally {
-      setUpdatingId(null);
+      setUpdatingId(null)
     }
-  };
+  }
 
   const filteredAppointments = useMemo(() => {
     return appointments.filter((appointment) => {
       const matchesSearch =
-        appointment.serviceName
-          ?.toLowerCase()
-          .includes(search.toLowerCase()) ||
-        appointment.userId
-          ?.toLowerCase()
-          .includes(search.toLowerCase()) ||
+        appointment.serviceName?.toLowerCase().includes(search.toLowerCase()) ||
+        appointment.userId?.toLowerCase().includes(search.toLowerCase()) ||
         appointment.serviceCategory
           ?.toLowerCase()
-          .includes(search.toLowerCase());
+          .includes(search.toLowerCase())
 
       const matchesStatus =
-        statusFilter === "All" ||
-        appointment.status === statusFilter;
+        statusFilter === "All" || appointment.status === statusFilter
 
-      return matchesSearch && matchesStatus;
-    });
-  }, [appointments, search, statusFilter]);
+      return matchesSearch && matchesStatus
+    })
+  }, [appointments, search, statusFilter])
 
   const stats = [
     {
@@ -173,45 +162,45 @@ export default function AdminAppointmentsPage() {
       icon: XCircle,
       color: "bg-red-50 text-red-600",
     },
-  ];
+  ]
 
   const getStatusStyle = (status: string) => {
     switch (status) {
       case "Pending":
-        return "bg-amber-50 text-amber-700";
+        return "bg-amber-50 text-amber-700"
       case "Confirmed":
-        return "bg-green-50 text-green-700";
+        return "bg-green-50 text-green-700"
       case "Completed":
-        return "bg-blue-50 text-blue-700";
+        return "bg-blue-50 text-blue-700"
       case "Cancelled":
-        return "bg-red-50 text-red-700";
+        return "bg-red-50 text-red-700"
       default:
-        return "bg-gray-100 text-gray-600";
+        return "bg-gray-100 text-gray-600"
     }
-  };
+  }
 
   const getPaymentStyle = (status: string) => {
     return status === "Paid"
       ? "bg-green-50 text-green-700"
-      : "bg-amber-50 text-amber-700";
-  };
+      : "bg-amber-50 text-amber-700"
+  }
 
   const formatDate = (date: string) => {
-    if (!date) return "N/A";
+    if (!date) return "N/A"
 
     return new Date(`${date}T00:00:00`).toLocaleDateString("en-US", {
       day: "numeric",
       month: "short",
       year: "numeric",
-    });
-  };
+    })
+  }
 
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#E8C9CE] border-t-[#873C52]" />
       </div>
-    );
+    )
   }
 
   return (
@@ -242,7 +231,7 @@ export default function AdminAppointmentsPage() {
       {/* Statistics */}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {stats.map((stat) => {
-          const Icon = stat.icon;
+          const Icon = stat.icon
 
           return (
             <div
@@ -262,16 +251,14 @@ export default function AdminAppointmentsPage() {
                 </div>
               </div>
             </div>
-          );
+          )
         })}
       </section>
 
       {/* Appointment List */}
       <section className="overflow-hidden rounded-2xl border border-[#F1E4E5] bg-white shadow-sm">
         <div className="border-b border-[#F1E4E5] p-5 sm:p-6">
-          <h2 className="text-xl font-bold text-[#292323]">
-            All Appointments
-          </h2>
+          <h2 className="text-xl font-bold text-[#292323]">All Appointments</h2>
           <p className="mt-1 text-sm text-gray-500">
             Manage customer bookings and update their status.
           </p>
@@ -280,22 +267,20 @@ export default function AdminAppointmentsPage() {
             <div className="relative md:col-span-2">
               <Search
                 size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
               />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by service or customer ID..."
-                className="w-full rounded-xl border border-[#E8C9CE] py-3 pl-10 pr-4 text-sm outline-none focus:border-[#873C52]"
+                className="w-full rounded-xl border border-[#E8C9CE] py-3 pr-4 pl-10 text-sm outline-none focus:border-[#873C52]"
               />
             </div>
 
             <select
               value={statusFilter}
-              onChange={(e) =>
-                setStatusFilter(e.target.value as StatusFilter)
-              }
+              onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
               className="rounded-xl border border-[#E8C9CE] bg-white px-4 py-3 text-sm outline-none focus:border-[#873C52]"
             >
               <option value="All">All Status</option>
@@ -342,7 +327,7 @@ export default function AdminAppointmentsPage() {
                     {appointment.serviceCategory}
                   </p>
 
-                  <p className="mt-2 break-all text-xs text-gray-400">
+                  <p className="mt-2 text-xs break-all text-gray-400">
                     Customer ID: {appointment.userId}
                   </p>
 
@@ -402,10 +387,7 @@ export default function AdminAppointmentsPage() {
                         <button
                           disabled={updatingId === appointment._id}
                           onClick={() =>
-                            handleStatusUpdate(
-                              appointment._id,
-                              "Confirmed"
-                            )
+                            handleStatusUpdate(appointment._id, "Confirmed")
                           }
                           className="rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
                         >
@@ -415,10 +397,7 @@ export default function AdminAppointmentsPage() {
                         <button
                           disabled={updatingId === appointment._id}
                           onClick={() =>
-                            handleStatusUpdate(
-                              appointment._id,
-                              "Cancelled"
-                            )
+                            handleStatusUpdate(appointment._id, "Cancelled")
                           }
                           className="rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
                         >
@@ -430,25 +409,29 @@ export default function AdminAppointmentsPage() {
                     {appointment.status === "Confirmed" && (
                       <>
                         <button
-                          disabled={updatingId === appointment._id}
-                          onClick={() =>
-                            handleStatusUpdate(
-                              appointment._id,
-                              "Completed"
-                            )
+                          disabled={
+                            updatingId === appointment._id ||
+                            appointment.paymentStatus !== "Paid"
                           }
-                          className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
+                          onClick={() =>
+                            handleStatusUpdate(appointment._id, "Completed")
+                          }
+                          title={
+                            appointment.paymentStatus !== "Paid"
+                              ? "Payment required before completion"
+                              : "Complete appointment"
+                          }
+                          className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
                         >
-                          Complete
+                          {appointment.paymentStatus !== "Paid"
+                            ? "Payment Required"
+                            : "Complete"}
                         </button>
 
                         <button
                           disabled={updatingId === appointment._id}
                           onClick={() =>
-                            handleStatusUpdate(
-                              appointment._id,
-                              "Cancelled"
-                            )
+                            handleStatusUpdate(appointment._id, "Cancelled")
                           }
                           className="rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
                         >
@@ -484,5 +467,5 @@ export default function AdminAppointmentsPage() {
         </div>
       </section>
     </div>
-  );
+  )
 }

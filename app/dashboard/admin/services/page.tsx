@@ -195,11 +195,7 @@ export default function AdminServicesPage() {
         {/* Page Header */}
         <div className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
           <div>
-            <p className="mb-2 text-sm font-semibold tracking-[0.18em] text-[#873C52] uppercase">
-              Admin Dashboard
-            </p>
-
-            <h1 className="text-2xl font-bold text-[#292323] sm:text-3xl">
+        <h1 className="text-2xl font-bold text-[#292323] sm:text-3xl">
               Manage Services
             </h1>
 
