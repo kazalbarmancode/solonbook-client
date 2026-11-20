@@ -53,7 +53,7 @@ export default function DashboardLayout({
     // Customer access
     if (role === "customer") {
       if (isAdminRoute) {
-        router.replace("/dashboard/costomers");
+        router.replace("/dashboard");
       }
       return;
     }

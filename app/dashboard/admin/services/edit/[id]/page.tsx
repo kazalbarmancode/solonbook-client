@@ -1,10 +1,9 @@
+"use client"
 
-"use client";
-
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import toast from "react-hot-toast";
+import { useEffect, useState } from "react"
+import { useParams, useRouter } from "next/navigation"
+import Link from "next/link"
+import toast from "react-hot-toast"
 
 import {
   ArrowLeft,
@@ -12,13 +11,16 @@ import {
   Save,
   ImageIcon,
   Scissors,
-} from "lucide-react";
+  Upload,
+  X,
+} from "lucide-react"
 
 import {
   getSingleServiceApi,
   updateServiceApi,
   type ServicePayload,
-} from "@/lib/api/servicesApi";
+} from "@/lib/api/servicesApi"
+import Image from "next/image"
 
 const initialFormData: ServicePayload = {
   name: "",
@@ -28,31 +30,57 @@ const initialFormData: ServicePayload = {
   description: "",
   image: "",
   isActive: true,
-};
+}
 
 export default function EditServicePage() {
-  const params = useParams<{ id: string }>();
-  const router = useRouter();
+  const params = useParams<{ id: string }>()
+  const router = useRouter()
 
-  const id = params.id;
+  const id = params.id
 
-  const [formData, setFormData] =
-    useState<ServicePayload>(initialFormData);
+  const [formData, setFormData] = useState<ServicePayload>(initialFormData)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState("")
+  const [uploading, setUploading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState("")
 
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+
+    if (!file) return
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image.")
+      e.target.value = ""
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be smaller than 5MB.")
+      e.target.value = ""
+      return
+    }
+
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview)
+    }
+
+    setImageFile(file)
+    setImagePreview(URL.createObjectURL(file))
+  }
 
   // Load existing service data
   useEffect(() => {
-    if (!id) return;
+    if (!id) return
 
     const fetchService = async () => {
       try {
-        setLoading(true);
-        setError("");
+        setLoading(true)
+        setError("")
 
-        const service = await getSingleServiceApi(id);
+        const service = await getSingleServiceApi(id)
 
         setFormData({
           name: service.name || "",
@@ -62,22 +90,20 @@ export default function EditServicePage() {
           description: service.description || "",
           image: service.image || "",
           isActive: service.isActive ?? true,
-        });
+        })
       } catch (err) {
         const message =
-          err instanceof Error
-            ? err.message
-            : "Failed to load service";
+          err instanceof Error ? err.message : "Failed to load service"
 
-        setError(message);
-        toast.error(message);
+        setError(message)
+        toast.error(message)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchService();
-  }, [id]);
+    fetchService()
+  }, [id])
 
   // Handle input changes
   const handleChange = (
@@ -85,52 +111,74 @@ export default function EditServicePage() {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
 
     setFormData((prev) => ({
       ...prev,
       [name]: name === "price" ? Number(value) : value,
-    }));
-  };
+    }))
+  }
 
-  // Submit updated service
-  const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
 
     if (
       !formData.name.trim() ||
       !formData.category.trim() ||
       !formData.duration.trim() ||
       !formData.description.trim() ||
-      !formData.image.trim() ||
+      (!formData.image.trim() && !imageFile) ||
       formData.price <= 0
     ) {
-      toast.error("Please fill in all fields correctly");
-      return;
+      toast.error("Please fill in all fields correctly")
+      return
     }
 
     try {
-      setSubmitting(true);
+      setSubmitting(true)
 
-      await updateServiceApi(id, formData);
+      let updatedImageUrl = formData.image
 
-      toast.success("Service updated successfully!");
+      if (imageFile) {
+        setUploading(true)
 
-      router.push("/dashboard/admin/services");
-      router.refresh();
+        const uploadFormData = new FormData()
+        uploadFormData.append("image", imageFile)
+
+        const response = await fetch("/api/upload-image", {
+          method: "POST",
+          body: uploadFormData,
+        })
+
+        const result = await response.json()
+
+        if (!response.ok || !result.success || !result.url) {
+          throw new Error(result.message || "Image upload failed")
+        }
+
+        updatedImageUrl = result.url
+        setUploading(false)
+      }
+
+      await updateServiceApi(id, {
+        ...formData,
+        image: updatedImageUrl,
+      })
+
+      toast.success("Service updated successfully!")
+
+      router.push("/dashboard/admin/services")
+      router.refresh()
     } catch (err) {
       const message =
-        err instanceof Error
-          ? err.message
-          : "Failed to update service";
+        err instanceof Error ? err.message : "Failed to update service"
 
-      toast.error(message);
+      toast.error(message)
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
+      setUploading(false)
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -142,7 +190,7 @@ export default function EditServicePage() {
           </p>
         </div>
       </div>
-    );
+    )
   }
 
   if (error) {
@@ -154,9 +202,7 @@ export default function EditServicePage() {
           Unable to Load Service
         </h2>
 
-        <p className="mt-2 text-sm text-gray-500">
-          {error}
-        </p>
+        <p className="mt-2 text-sm text-gray-500">{error}</p>
 
         <Link
           href="/dashboard/admin/services"
@@ -165,12 +211,11 @@ export default function EditServicePage() {
           Back to Services
         </Link>
       </div>
-    );
+    )
   }
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -191,12 +236,6 @@ export default function EditServicePage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 rounded-xl border border-[#E8C9CE] bg-white px-4 py-3">
-          <Scissors className="h-5 w-5 text-[#873C52]" />
-          <span className="text-sm font-semibold text-[#55102A]">
-            SalonBook Admin
-          </span>
-        </div>
       </div>
 
       {/* Form */}
@@ -215,7 +254,6 @@ export default function EditServicePage() {
         </div>
 
         <div className="grid gap-6 p-6 md:grid-cols-2">
-
           {/* Service Name */}
           <div>
             <label
@@ -233,7 +271,7 @@ export default function EditServicePage() {
               onChange={handleChange}
               placeholder="Enter service name"
               required
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-[#873C52] focus:ring-2 focus:ring-[#873C52]/10"
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition outline-none focus:border-[#873C52] focus:ring-2 focus:ring-[#873C52]/10"
             />
           </div>
 
@@ -252,7 +290,7 @@ export default function EditServicePage() {
               value={formData.category}
               onChange={handleChange}
               required
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#873C52] focus:ring-2 focus:ring-[#873C52]/10"
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm transition outline-none focus:border-[#873C52] focus:ring-2 focus:ring-[#873C52]/10"
             >
               <option value="">Select category</option>
               <option value="Hair">Hair</option>
@@ -282,7 +320,7 @@ export default function EditServicePage() {
               onChange={handleChange}
               placeholder="Enter price"
               required
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-[#873C52] focus:ring-2 focus:ring-[#873C52]/10"
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition outline-none focus:border-[#873C52] focus:ring-2 focus:ring-[#873C52]/10"
             />
           </div>
 
@@ -303,50 +341,72 @@ export default function EditServicePage() {
               onChange={handleChange}
               placeholder="Example: 45 minutes"
               required
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-[#873C52] focus:ring-2 focus:ring-[#873C52]/10"
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition outline-none focus:border-[#873C52] focus:ring-2 focus:ring-[#873C52]/10"
             />
           </div>
 
-          {/* Image URL */}
+          {/* Service Image Upload */}
           <div className="md:col-span-2">
-            <label
-              htmlFor="image"
-              className="mb-2 block text-sm font-semibold text-gray-700"
-            >
-              Service Image URL *
+            <label className="mb-2 block text-sm font-semibold text-gray-700">
+              Service Image *
             </label>
 
-            <input
-              id="image"
-              name="image"
-              type="url"
-              value={formData.image}
-              onChange={handleChange}
-              placeholder="https://example.com/image.jpg"
-              required
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-[#873C52] focus:ring-2 focus:ring-[#873C52]/10"
-            />
-
-            {/* Image Preview */}
-            {formData.image && (
-              <div className="mt-4 overflow-hidden rounded-xl border border-[#E8C9CE]/60 bg-[#FFFDF9] p-3">
-                <div className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-600">
-                  <ImageIcon size={17} />
-                  Image Preview
-                </div>
-
-                <img
-                  src={formData.image}
-                  alt="Service preview"
-                  className="h-48 w-full rounded-lg object-cover sm:w-72"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
+            <div className="overflow-hidden rounded-xl border border-[#E8C9CE]/60 bg-[#FFFDF9] p-4">
+              {/* Image Preview */}
+              <div className="mb-4">
+                {imagePreview || formData.image ? (
+                  <Image
+                    src={imagePreview || formData.image}
+                    alt="Service preview"
+                    width={600}
+                    height={400}
+                    unoptimized
+                    className="h-52 w-full rounded-xl object-cover sm:w-80"
+                  />
+                ) : (
+                  <div className="flex h-48 items-center justify-center rounded-xl border-2 border-dashed border-[#E8C9CE]">
+                    <div className="text-center text-gray-400">
+                      <ImageIcon size={36} className="mx-auto mb-2" />
+                      <p className="text-sm">No image selected</p>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-[#873C52] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#55102A]">
+                <Upload size={18} />
+                Choose New Image
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+              </label>
+
+              {imageFile && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (imagePreview) {
+                      URL.revokeObjectURL(imagePreview)
+                    }
+
+                    setImageFile(null)
+                    setImagePreview("")
+                  }}
+                  className="ml-3 inline-flex items-center gap-1 text-sm font-medium text-red-600"
+                >
+                  <X size={16} />
+                  Cancel New Image
+                </button>
+              )}
+
+              <p className="mt-3 text-xs text-gray-500">
+                Select a new image to replace the existing one. Maximum 5MB.
+              </p>
+            </div>
+          </div>
           {/* Description */}
           <div className="md:col-span-2">
             <label
@@ -364,7 +424,7 @@ export default function EditServicePage() {
               onChange={handleChange}
               placeholder="Write service description..."
               required
-              className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-[#873C52] focus:ring-2 focus:ring-[#873C52]/10"
+              className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm transition outline-none focus:border-[#873C52] focus:ring-2 focus:ring-[#873C52]/10"
             />
           </div>
 
@@ -401,7 +461,6 @@ export default function EditServicePage() {
 
         {/* Footer Actions */}
         <div className="flex flex-col-reverse gap-3 border-t border-[#E8C9CE]/50 bg-[#FFFDF9] px-6 py-5 sm:flex-row sm:justify-end">
-
           <Link
             href="/dashboard/admin/services"
             className="rounded-xl border border-gray-200 bg-white px-6 py-3 text-center text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
@@ -411,13 +470,13 @@ export default function EditServicePage() {
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || uploading}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#873C52] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#55102A] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
-                Updating...
+                {uploading ? "Uploading Image..." : "Updating..."}
               </>
             ) : (
               <>
@@ -429,5 +488,5 @@ export default function EditServicePage() {
         </div>
       </form>
     </div>
-  );
+  )
 }

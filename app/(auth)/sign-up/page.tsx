@@ -45,8 +45,8 @@ export default function SignUpPage() {
       return
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      setErrorMsg("Image size must be less than 10MB.")
+    if (file.size > 2 * 1024 * 1024) {
+      setErrorMsg("Image size must be less than 2MB.")
       return
     }
 

@@ -24,7 +24,6 @@ import {
   Loader2,
   Scissors,
   CheckCircle2,
-  Sparkles,
 } from "lucide-react";
 
 export default function ServiceDetailsPage() {
@@ -223,7 +222,6 @@ export default function ServiceDetailsPage() {
             {/* Service Information */}
             <div>
               <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-[#F8E9EC] px-4 py-2 text-xs font-semibold text-[#873C52]">
-                <Sparkles size={15} />
                 Premium Salon Service
               </div>
 

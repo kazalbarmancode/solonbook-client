@@ -25,6 +25,33 @@ export default function AddNewServicesPage() {
   const [formData, setFormData] = useState(initialForm)
   const [price, setPrice] = useState("")
   const [loading, setLoading] = useState(false)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState("")
+  const [uploading, setUploading] = useState(false)
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+
+    if (!file) return
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image.")
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be smaller than 5MB.")
+      e.target.value = ""
+      return
+    }
+
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview)
+    }
+
+    setImageFile(file)
+    setImagePreview(URL.createObjectURL(file))
+  }
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -53,7 +80,7 @@ export default function AddNewServicesPage() {
       Number(price) <= 0 ||
       !formData.duration ||
       !formData.description.trim() ||
-      !formData.image.trim()
+      (!imageFile && !formData.image.trim())
     ) {
       toast.error("Please fill in all required fields")
       return
@@ -62,8 +89,32 @@ export default function AddNewServicesPage() {
     try {
       setLoading(true)
 
+      let uploadedImageUrl = formData.image
+
+      if (imageFile) {
+        setUploading(true)
+
+        const uploadFormData = new FormData()
+        uploadFormData.append("image", imageFile)
+
+        const response = await fetch("/api/upload-image", {
+          method: "POST",
+          body: uploadFormData,
+        })
+
+        const result = await response.json()
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || "Image upload failed")
+        }
+
+        uploadedImageUrl = result.url
+        setUploading(false)
+      }
+
       await addServiceApi({
         ...formData,
+        image: uploadedImageUrl,
         price: Number(price),
       })
 
@@ -71,6 +122,8 @@ export default function AddNewServicesPage() {
 
       setFormData(initialForm)
       setPrice("")
+      setImageFile(null)
+      setImagePreview("")
 
       router.push("/dashboard/admin/services")
       router.refresh()
@@ -80,9 +133,9 @@ export default function AddNewServicesPage() {
       )
     } finally {
       setLoading(false)
+      setUploading(false)
     }
   }
-
   return (
     <div className="min-h-full bg-[#FFFDF9] p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-5xl">
@@ -220,17 +273,19 @@ export default function AddNewServicesPage() {
               <h2 className="mb-1 text-lg font-semibold text-[#292323]">
                 Service Image
               </h2>
+
               <p className="mb-5 text-sm text-gray-500">
-                Add an image URL for your service.
+                Upload your service image to ImgBB (Maximum 5MB).
               </p>
 
-              <div className="mb-4 flex min-h-48 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-[#E8C9CE] bg-[#FFFDF9] p-5">
-                {formData.image ? (
+              <div className="mb-5 flex min-h-48 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-[#E8C9CE] bg-[#FFFDF9] p-5">
+                {imagePreview || formData.image ? (
                   <Image
-                    src={formData.image}
+                    src={imagePreview || formData.image}
                     alt="Service preview"
                     width={600}
                     height={400}
+                    unoptimized
                     className="max-h-52 max-w-full rounded-xl object-cover"
                   />
                 ) : (
@@ -243,26 +298,37 @@ export default function AddNewServicesPage() {
                       Image Preview
                     </p>
                     <p className="mt-1 text-xs text-gray-500">
-                      Paste an image URL below
+                      Select an image from your device
                     </p>
                   </div>
                 )}
               </div>
 
               <label className="mb-2 block text-sm font-semibold text-[#292323]">
-                Image URL *
+                Choose Service Image *
               </label>
-              <input
-                type="url"
-                name="image"
-                value={formData.image}
-                onChange={handleChange}
-                placeholder="https://example.com/service-image.jpg"
-                required
-                className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#873C52]"
-              />
-            </div>
 
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm"
+              />
+
+              {imageFile && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (imagePreview) URL.revokeObjectURL(imagePreview)
+                    setImageFile(null)
+                    setImagePreview("")
+                  }}
+                  className="mt-3 text-sm font-medium text-red-600 hover:text-red-700"
+                >
+                  Remove Image
+                </button>
+              )}
+            </div>
             {/* Status */}
             <div className="p-5 sm:p-8">
               <h2 className="mb-1 text-lg font-semibold text-[#292323]">
