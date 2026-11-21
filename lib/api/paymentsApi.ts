@@ -1,6 +1,21 @@
+import { authClient } from "../auth-client";
 
 const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+
+  const getAuthHeaders = async () => {
+  const tokenResponse = await authClient.token();
+  const token = tokenResponse.data?.token;
+
+  if (!token) {
+    throw new Error("Authentication token not found. Please login again.");
+  }
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+};
 
   
 interface VerifyPaymentResponse {
@@ -37,18 +52,14 @@ interface TransactionsResponse {
 }
 export const createCheckoutSessionApi = async (
   appointmentId: string,
-  userId: string
 ): Promise<CheckoutResponse> => {
   const response = await fetch(
     `${API_URL}/payments/create-checkout-session`,
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: await getAuthHeaders(),
       body: JSON.stringify({
         appointmentId,
-        userId,
       }),
     }
   );
@@ -56,9 +67,7 @@ export const createCheckoutSessionApi = async (
   const result = await response.json();
 
   if (!response.ok) {
-    throw new Error(
-      result.message || "Unable to start payment"
-    );
+    throw new Error(result.message || "Unable to start payment");
   }
 
   if (!result.url) {
@@ -67,6 +76,7 @@ export const createCheckoutSessionApi = async (
 
   return result;
 };
+
 export const verifyPaymentApi = async (
   sessionId: string
 ): Promise<VerifyPaymentResponse> => {
@@ -74,9 +84,7 @@ export const verifyPaymentApi = async (
     `${API_URL}/payments/verify-session`,
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: await getAuthHeaders(),
       body: JSON.stringify({ sessionId }),
     }
   );
@@ -91,15 +99,15 @@ export const verifyPaymentApi = async (
 
   return result;
 };
+
+// Get Admin Transactions
 export const getAdminTransactionsApi =
   async (): Promise<TransactionsResponse> => {
     const response = await fetch(
       `${API_URL}/admin/transactions`,
       {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: await getAuthHeaders(),
         cache: "no-store",
       }
     );

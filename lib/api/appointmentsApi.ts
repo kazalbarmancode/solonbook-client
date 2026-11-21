@@ -1,9 +1,22 @@
+import { authClient } from "../auth-client";
+const getAuthHeaders = async () => {
+  const tokenResponse = await authClient.token();
+  const token = tokenResponse.data?.token;
+
+  if (!token) {
+    throw new Error("Authentication token not found. Please login again.");
+  }
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+};
 
 const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
 export interface AppointmentPayload {
-  userId: string;
   serviceId: string;
   appointmentDate: string;
   timeSlot: string;
@@ -31,15 +44,14 @@ status: "Pending" | "Confirmed" | "Cancelled" | "Completed";
   customerEmail?: string;
 }
 
-
 export const createAppointmentApi = async (
   data: AppointmentPayload
 ): Promise<Appointment> => {
+  const headers = await getAuthHeaders();
+
   const response = await fetch(`${API_URL}/appointments`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify(data),
   });
 
@@ -55,26 +67,30 @@ export const createAppointmentApi = async (
 export const getMyAppointmentsApi = async (
   userId: string
 ): Promise<Appointment[]> => {
+  const headers = await getAuthHeaders();
+
   const response = await fetch(
-    `${API_URL}/appointments/user/${userId}`
+    `${API_URL}/appointments/user/${encodeURIComponent(userId)}`,
+    { headers }
   );
 
   const result = await response.json();
 
   if (!response.ok) {
-    throw new Error(
-      result.message || "Failed to fetch appointments"
-    );
+    throw new Error(result.message || "Failed to fetch appointments");
   }
 
   return result.data;
 };
+
 export const getSingleAppointmentApi = async (
-  id: string,
-  userId: string
+  id: string
 ): Promise<Appointment> => {
+  const headers = await getAuthHeaders();
+
   const response = await fetch(
-    `${API_URL}/appointments/${id}?userId=${encodeURIComponent(userId)}`
+    `${API_URL}/appointments/${id}`,
+    { headers }
   );
 
   const result = await response.json();
@@ -88,38 +104,37 @@ export const getSingleAppointmentApi = async (
   return result.data;
 };
 export const deleteAppointmentApi = async (
-  id: string,
-  userId: string
+  id: string
 ): Promise<void> => {
-  const response = await fetch(`${API_URL}/appointments/${id}`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ userId }),
-  });
+  const headers = await getAuthHeaders();
+
+  const response = await fetch(
+    `${API_URL}/appointments/${id}`,
+    {
+      method: "DELETE",
+      headers,
+    }
+  );
 
   const result = await response.json();
 
   if (!response.ok) {
-    throw new Error(result.message || "Failed to delete appointment");
+    throw new Error(result.message || "Failed to cancel appointment");
   }
 };
-export const rescheduleAppointmentApi = async (
+ export const rescheduleAppointmentApi = async (
   id: string,
-  userId: string,
   appointmentDate: string,
   timeSlot: string
 ): Promise<Appointment> => {
+  const headers = await getAuthHeaders();
+
   const response = await fetch(
     `${API_URL}/appointments/${id}/reschedule`,
     {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify({
-        userId,
         appointmentDate,
         timeSlot,
       }),
@@ -134,9 +149,13 @@ export const rescheduleAppointmentApi = async (
 
   return result.data;
 };
-// GET ALL APPOINTMENTS FOR ADMIN
 export const getAllAppointmentsApi = async (): Promise<Appointment[]> => {
-  const response = await fetch(`${API_URL}/admin/appointments`);
+  const headers = await getAuthHeaders();
+
+  const response = await fetch(
+    `${API_URL}/admin/appointments`,
+    { headers }
+  );
 
   const result = await response.json();
 
@@ -146,19 +165,17 @@ export const getAllAppointmentsApi = async (): Promise<Appointment[]> => {
 
   return result.data;
 };
-
-// UPDATE APPOINTMENT STATUS
 export const updateAppointmentStatusApi = async (
   id: string,
   status: Appointment["status"]
 ): Promise<Appointment> => {
+  const headers = await getAuthHeaders();
+
   const response = await fetch(
     `${API_URL}/admin/appointments/${id}/status`,
     {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify({ status }),
     }
   );

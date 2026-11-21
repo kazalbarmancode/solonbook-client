@@ -1,6 +1,8 @@
 
+import { authClient } from "@/lib/auth-client";
+
 const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
 export interface Service {
   _id: string;
@@ -24,16 +26,37 @@ export interface ServicePayload {
   isActive: boolean;
 }
 
+// Get JWT Authentication Headers
+const getAuthHeaders = async () => {
+  const tokenResponse = await authClient.token();
+  const token = tokenResponse.data?.token;
+
+  if (!token) {
+    throw new Error("Authentication token not found. Please login again.");
+  }
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+};
+
+// Common API Request
 const apiRequest = async (
   url: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  requiresAuth = false
 ) => {
+  const headers = requiresAuth
+    ? await getAuthHeaders()
+    : {
+        "Content-Type": "application/json",
+        ...options.headers,
+      };
+
   const response = await fetch(`${API_URL}${url}`, {
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
+    headers,
   });
 
   const result = await response.json();
@@ -45,47 +68,63 @@ const apiRequest = async (
   return result;
 };
 
-// GET
+// GET - All Services (Public)
 export const getAllServicesApi = (): Promise<Service[]> =>
   apiRequest("/futured-all");
 
-// POST
+// POST - Add Service (Admin Only)
 export const addServiceApi = (data: ServicePayload) =>
-  apiRequest("/admin/services", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
+  apiRequest(
+    "/admin/services",
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    },
+    true
+  );
 
-// Patch
+// GET - Single Service (Public)
 export const getSingleServiceApi = async (
   id: string
 ): Promise<Service> => {
   return apiRequest(`/futured-all/${id}`);
 };
 
-// Update Service
+// PATCH - Update Service (Admin Only)
 export const updateServiceApi = async (
   id: string,
   data: ServicePayload
 ) => {
-  return apiRequest(`/admin/services/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(data),
-  });
+  return apiRequest(
+    `/admin/services/${id}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    },
+    true
+  );
 };
 
-// PATCH
+// PATCH - Update Service Status (Admin Only)
 export const updateServiceStatusApi = (
   id: string,
   isActive: boolean
 ) =>
-  apiRequest(`/admin/services/${id}/status`, {
-    method: "PATCH",
-    body: JSON.stringify({ isActive }),
-  });
+  apiRequest(
+    `/admin/services/${id}/status`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ isActive }),
+    },
+    true
+  );
 
-// DELETE
+// DELETE - Delete Service (Admin Only)
 export const deleteServiceApi = (id: string) =>
-  apiRequest(`/admin/services/${id}`, {
-    method: "DELETE",
-  });
+  apiRequest(
+    `/admin/services/${id}`,
+    {
+      method: "DELETE",
+    },
+    true
+  );
