@@ -24,7 +24,6 @@ export default function SignInPage() {
   const [password, setPassword] = useState("")
 
   const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(true)
 
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
@@ -48,7 +47,6 @@ export default function SignInPage() {
     const { data, error } = await authClient.signIn.email({
       email: email.trim(),
       password,
-      rememberMe,
     });
 
     if (error) {
@@ -242,27 +240,7 @@ const handleGoogleSignIn = async () => {
                 </div>
               </div>
 
-              {/* Remember Me & Forgot Password */}
-              <div className="flex items-center justify-between gap-3">
-
-                <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-600">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="h-4 w-4 accent-[#873C52]"
-                  />
-                  Remember Me
-                </label>
-
-                <Link
-                  href="/forgot-password"
-                  className="text-sm font-semibold text-[#873C52] hover:underline"
-                >
-                  Forgot Password?
-                </Link>
-              </div>
-
+             
               {/* Error Message */}
               {errorMsg && (
                 <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">

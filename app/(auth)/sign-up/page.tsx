@@ -18,6 +18,7 @@ import {
   X,
   Loader2,
 } from "lucide-react"
+import toast from "react-hot-toast"
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -70,7 +71,8 @@ export default function SignUpPage() {
   }
 
   // Signup Handler
-  
+ 
+
 const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
   setErrorMsg("");
@@ -101,42 +103,53 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     let uploadedImageUrl = "";
 
     if (profileImage) {
-      const formData = new FormData();
-      formData.append("image", profileImage);
+      try {
+        const formData = new FormData();
+        formData.append("image", profileImage);
 
-      const uploadResponse = await fetch("/api/upload-image", {
-        method: "POST",
-        body: formData,
-      });
+        const uploadResponse = await fetch("/api/upload-image", {
+          method: "POST",
+          body: formData,
+        });
 
-      const uploadResult = await uploadResponse.json();
+        const uploadResult = await uploadResponse.json();
 
-      if (!uploadResponse.ok || !uploadResult.success) {
-        throw new Error(
-          uploadResult.message || "Image upload failed."
-        );
+        if (uploadResponse.ok && uploadResult.success) {
+          uploadedImageUrl = uploadResult.url;
+        } else {
+          toast.error("Photo upload failed. Continuing without photo.");
+        }
+      } catch (uploadError) {
+        console.warn("Optional profile image upload failed:", uploadError);
+        toast.error("Photo upload unavailable. Continuing without photo.");
       }
-
-      uploadedImageUrl = uploadResult.url;
     }
+console.log("Uploaded Image URL:", uploadedImageUrl);
 
-    const { error } = await signUp.email({
-      name: name.trim(),
-      email: email.trim(),
-      password,
-      image: uploadedImageUrl || undefined,
-      callbackURL: "/",
-    });
+const { data, error } = await signUp.email({
+  name: name.trim(),
+  email: email.trim(),
+  password,
+  image: uploadedImageUrl || undefined,
+  callbackURL: "/",
+});
+
+console.log("Signup response:", data);
+console.log("Signup error:", error);
 
     if (error) {
       setErrorMsg(error.message || "Unable to create account.");
       return;
     }
 
+    toast.success("Account created successfully!");
+
     router.push("/");
     router.refresh();
 
   } catch (error) {
+    console.error("Signup error:", error);
+
     setErrorMsg(
       error instanceof Error
         ? error.message
@@ -146,7 +159,6 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     setLoading(false);
   }
 };
-
 
   // Google Signup
   const handleGoogleSignUp = async () => {

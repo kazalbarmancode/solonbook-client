@@ -1,7 +1,15 @@
 
 import { NextResponse } from "next/server";
+import axios from "axios";
+import FormData from "form-data";
+import https from "node:https";
 
 export const runtime = "nodejs";
+
+const httpsAgent = new https.Agent({
+  family: 4,
+  keepAlive: false,
+});
 
 export async function GET() {
   return NextResponse.json({
@@ -24,7 +32,7 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const file = formData.get("image");
 
-    if (!(file instanceof File)) {
+    if (!(file instanceof File) || file.size === 0) {
       return NextResponse.json(
         { success: false, message: "Image file is required" },
         { status: 400 }
@@ -33,59 +41,78 @@ export async function POST(request: Request) {
 
     if (!file.type.startsWith("image/")) {
       return NextResponse.json(
-        { success: false, message: "Please select an image file" },
+        { success: false, message: "Please select a valid image" },
         { status: 400 }
       );
     }
 
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > 2 * 1024 * 1024) {
       return NextResponse.json(
-        { success: false, message: "Image must be smaller than 10MB" },
+        { success: false, message: "Image must be smaller than 2MB" },
         { status: 400 }
       );
     }
+
+    console.log("Starting ImgBB upload...");
+    console.log("File size:", file.size);
 
     const uploadData = new FormData();
-    uploadData.append("image", file);
 
-    const imgbbResponse = await fetch(
-      `https://api.imgbb.com/1/upload?key=${apiKey}`,
+    uploadData.append(
+      "image",
+      Buffer.from(await file.arrayBuffer()),
       {
-        method: "POST",
-        body: uploadData,
-        cache: "no-store",
+        filename: file.name || "profile-image.jpg",
+        contentType: file.type,
       }
     );
 
-    const result = await imgbbResponse.json();
+    const response = await axios.post(
+      "https://api.imgbb.com/1/upload",
+      uploadData,
+      {
+        params: {
+          key: apiKey,
+        },
+        headers: uploadData.getHeaders(),
+        httpsAgent,
+        timeout: 20000,
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
+      }
+    );
 
-    if (!imgbbResponse.ok || !result.success) {
-      console.error("ImgBB error:", result);
+    console.log("ImgBB response status:", response.status);
 
+    if (!response.data?.success || !response.data?.data?.url) {
       return NextResponse.json(
         {
           success: false,
-          message: result.error?.message || "ImgBB upload failed",
+          message: "ImgBB upload failed",
         },
-        { status: 400 }
+        { status: 502 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      url: result.data.url,
+      url: response.data.data.url,
       message: "Image uploaded successfully",
     });
+
   } catch (error) {
-    console.error("Upload API error:", error);
+    console.error("ImgBB upload error:", error);
 
     return NextResponse.json(
       {
         success: false,
-        message:
-          error instanceof Error ? error.message : "Image upload failed",
+        message: axios.isAxiosError(error)
+          ? error.code === "ECONNABORTED"
+            ? "ImgBB upload timed out."
+            : error.message
+          : "Image upload failed.",
       },
-      { status: 500 }
+      { status: 502 }
     );
   }
 }
