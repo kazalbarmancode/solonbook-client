@@ -175,7 +175,6 @@ export default function MyAppointmentsPage() {
 
       const updatedAppointment = await rescheduleAppointmentApi(
         editingAppointment._id,
-        userId,
         selectedDate,
         selectedTime
       )
@@ -199,6 +198,7 @@ export default function MyAppointmentsPage() {
       setSaving(false)
     }
   }
+
   // Stripe Payment
   const handlePayment = async (appointment: Appointment) => {
     if (!userId) {
@@ -217,8 +217,7 @@ export default function MyAppointmentsPage() {
     try {
       setPayingAppointmentId(appointment._id)
 
-      const result = await createCheckoutSessionApi(appointment._id, userId)
-
+      const result = await createCheckoutSessionApi(appointment._id)
       // Redirect to Stripe Checkout
       window.location.assign(result.url)
     } catch (error) {
@@ -237,7 +236,7 @@ export default function MyAppointmentsPage() {
     try {
       setDeleting(true)
 
-      await deleteAppointmentApi(deletingAppointment._id, userId)
+      await deleteAppointmentApi(deletingAppointment._id)
 
       setAppointments((previous) =>
         previous.filter(
@@ -477,6 +476,7 @@ export default function MyAppointmentsPage() {
                     <Eye className="h-4 w-4" />
                     Details
                   </Link>
+
                   {appointment.status === "Confirmed" &&
                     appointment.paymentStatus !== "Paid" && (
                       <button

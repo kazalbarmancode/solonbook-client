@@ -173,7 +173,6 @@ export default function BookingPage() {
       setSubmitting(true)
 
       await createAppointmentApi({
-        userId: session.user.id,
         serviceId: service._id,
         appointmentDate,
         timeSlot,

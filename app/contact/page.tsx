@@ -9,10 +9,7 @@ import {
   Mail,
   Clock,
   ArrowRight,
-  Send,
-  MessageCircle,
   CalendarDays,
-  Heart,
 } from "lucide-react";
 
 const contactDetails = [

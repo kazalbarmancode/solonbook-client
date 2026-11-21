@@ -48,7 +48,6 @@ export default function AppointmentDetailsPage() {
 
         const data = await getSingleAppointmentApi(
           appointmentId,
-          userId
         );
 
         if (isMounted) {
