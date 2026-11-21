@@ -1,3 +1,4 @@
+
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight, Heart } from "lucide-react"
@@ -29,9 +30,9 @@ const FeaturedServices = async () => {
           {services.map((service) => (
             <div
               key={service._id}
-              className="group overflow-hidden rounded-2xl border border-[#E8C9CE]/70 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg"
+              className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[#E8C9CE]/70 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg"
             >
-              <div className="relative h-48 overflow-hidden">
+              <div className="relative h-48 shrink-0 overflow-hidden">
                 <Image
                   src={service.image}
                   alt={service.name}
@@ -49,32 +50,36 @@ const FeaturedServices = async () => {
                 </button>
               </div>
 
-              <div className="space-y-3 p-4">
-                <h3 className="text-base font-bold text-[#292323]">
+              <div className="flex flex-1 flex-col space-y-3 p-4">
+                <h3 className="line-clamp-2 min-h-12 text-base font-bold text-[#292323]">
                   {service.name}
                 </h3>
 
-                <span className="inline-block rounded-full bg-[#E8C9CE]/40 px-3 py-1 text-xs font-medium text-[#873C52]">
-                  {service.category}
-                </span>
+                <div className="min-h-7">
+                  <span className="inline-block rounded-full bg-[#E8C9CE]/40 px-3 py-1 text-xs font-medium text-[#873C52]">
+                    {service.category}
+                  </span>
+                </div>
 
-                <div className="flex items-center gap-2 text-sm">
+                <div className="flex min-h-6 items-center gap-2 text-sm">
                   <span className="font-bold text-[#873C52]">
                     ৳{service.price}
                   </span>
+
                   <span className="text-[#BCA8A8]">•</span>
+
                   <span className="text-xs text-[#766B6B]">
                     {service.duration}
                   </span>
                 </div>
 
-                <p className="min-h-10 text-xs leading-5 text-[#766B6B]">
+                <p className="line-clamp-2 min-h-10 text-xs leading-5 text-[#766B6B]">
                   {service.description}
                 </p>
 
                 <Link
                   href={`/services/${service._id}`}
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-[#873C52] px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-[#6F3044]"
+                  className="mt-auto flex w-full items-center justify-center gap-2 rounded-full bg-[#873C52] px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-[#6F3044]"
                 >
                   View Details
                   <ArrowRight size={16} />

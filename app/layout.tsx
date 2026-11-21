@@ -5,6 +5,8 @@ import "./globals.css"
 import { cn } from "@/lib/utils"
 import { Toaster } from "react-hot-toast"
 import SiteLayout from "@/components/layout/SiteLayout"
+import { SpeedInsights } from "@vercel/speed-insights/next"
+
 
 const geist = Geist({
   subsets: ["latin"],
@@ -50,6 +52,8 @@ export default function RootLayout({
           }}
         />
         <SiteLayout>{children}</SiteLayout>
+                <SpeedInsights />
+
       </body>
     </html>
   )
