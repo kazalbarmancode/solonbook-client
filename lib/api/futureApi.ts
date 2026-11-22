@@ -11,7 +11,7 @@ export interface ServiceType {
   isActive: boolean;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL ||  "http://localhost:5000"
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
 export const getFeaturedApi = async (): Promise<Service[]> => {
   const response = await fetch(`${API_URL}/futured-all`);

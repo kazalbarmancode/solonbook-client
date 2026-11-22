@@ -10,7 +10,7 @@ export interface Service {
   isActive: boolean;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
 // Single Service Details
 export const getServiceDetails = async (
